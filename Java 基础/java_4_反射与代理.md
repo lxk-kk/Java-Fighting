@@ -1,4 +1,4 @@
-#### 【java_反射】
+#### java_反射
 
 ##### 什么是反射
 
@@ -329,7 +329,7 @@ public class Solution {
 
 + [深入理解 java 反射【源码解析】](https://www.sczyh30.com/posts/Java/java-reflection-2/)
 
-#### 【代理】
+#### 代理
 
 ##### 介绍
 
@@ -353,227 +353,428 @@ public class Solution {
 
   + 静态代理是事前先编写好代理的程序，经编译后，在运行期执行代理角色！
 
-  + 动态代理更加灵活，它是在运行期动态地 利用反射机制 实现指定的接口，并创建代理对象！
+  + 动态代理更加灵活，它是在运行期动态地 利用反射机制 实现指定的接口，生成代理类，创建代理对象！
 
 ##### 代理的优点
 
-```java
-/*
- · 代理的优点：
- 	1、使得 真实角色 处理业务更加纯粹，不用再关注一些公共的事情，将公共业务，交给代理完成！
- 	2、公共业务发生改变或者需要修改时，代码的改动变得更加集中和方便，只需要再代理类中修改即可！
-
-*/
-```
-
-
++ 通过代理，能够对外隐藏 真实角色，这非常适用于需要保证 真实角色 安全的场景！
++ 代理 使得 真实角色 的任务变得更加纯粹，它只需要关心自己的核心任务，一些公共的任务，可以交给代理完成！
 
 #####  静态代理
 
 + 代理类的已经实现按照开发者的实现，运行时期，直接执行即可
 
-```java
-/*
- · 静态代理的缺点：
-	1、代理角色 与 真实角色 绑定，是紧耦合的关系，说明一个代理类 只能代理一个 真实角色类，如果需要代理多个，则需要增加其他真实角色类的代理模块！类会随着业务的变更不断的增多，不利于代码的维护与扩展！
-	
-	2、如果需要增加 抽象角色 中的接口方法，那么，所有的代理类都需要进行相应的增加，不利于代码的扩展！
-*/
+###### 静态代理 缺点
 
-/*
- · 代码示例：
-*/
+1. 代理角色 和 真实角色 绑定，紧耦合，一个代理类只能够代理一个真实角色类，如果需要代理多个真实角色，则需要增加其他真实角色类的代理模块！
 
-// 抽象角色
-public interface AbstractRole {
-    /**
-     * 抽象行为
-     */
-    void action();
-}
-// 真实角色
-public class RealRole implements AbstractRole {
-    @Override
-    public void action() {
-        System.out.println("hello i am real person");
-    }
-}
+   **导致 随着 类 不断的增多，代理类也会不断的增多，并且具有相同代理功能的代理方法，不能复用，使得代码冗余！**
 
-// 代理角色
-public class ProxyRole implements AbstractRole {
-    // 封装真实角色（写死：紧耦合：一个代理类只能代理一个真实角色类）
-    private RealRole realRole;
+2. 如果 代理类和真实角色类之间的紧耦合，使得 牵一发而动全身！
 
-    ProxyRole(RealRole role) {
-        this.realRole = role;
-    }
+   **如果 真实角色 增加或者删除 某些方法，那么代理类也需要跟着改变，不利于代码的维护 和 扩展。**
 
-    // 在真实角色的行为上，添加自己的附属行为（打个广告啥的）
-    @Override
-    public void action() {
-        System.out.println("i am proxy person, following is the real one!");
-        realRole.action();
-        System.out.println("proxy end");
-    }
-}
+###### 静态代理 示例
 
-// 顾客：消费 代理角色 提供的服务
-public class Client {
-    public static void main(String[] args) {
-        // 真实角色
-        RealRole realRole = new RealRole();
-        // 代理角色
-        ProxyRole role = new ProxyRole(realRole);
-        role.action();
-    }
-}
-// 输出结果：
-i am proxy person, following is the real one!
-hello i am real person
-proxy end
-```
++ 抽象角色
 
+  ```java
+  public interface AbstractRole {
+      // 抽象行为
+      void action();
+  }
+  ```
 
++ 真实角色
+
+  ```java
+  public class RealRole implements AbstractRole {
+      @Override
+      public void action() {
+          System.out.println("hello i am real person");
+      }
+  }
+  ```
+
++ 代理角色
+
+  ```java
+  public class ProxyRole implements AbstractRole {
+      // 封装真实角色（写死：紧耦合：一个代理类只能代理一个真实角色类）
+      private RealRole realRole;
+  
+      ProxyRole(RealRole role) {
+          this.realRole = role;
+      }
+  
+      // 在真实角色的行为上，添加自己的附属行为（打个广告啥的）
+      @Override
+      public void action() {
+          System.out.println("i am proxy person, following is the real one!");
+          realRole.action();
+          System.out.println("proxy end");
+      }
+  }
+  ```
+
++ 顾客
+
+  消费 代理角色 提供的服务
+
+  ```java
+  public class Client {
+      public static void main(String[] args) {
+          // 真实角色
+          RealRole realRole = new RealRole();
+          // 代理角色
+          ProxyRole role = new ProxyRole(realRole);
+          role.action();
+      }
+  }
+  
+  // ------------------------------------------------ 
+  // 输出结果：
+  i am proxy person, following is the real one!
+  hello i am real person
+  proxy end
+  ```
 
 ##### 动态代理
 
-###### 介绍
++ **动态代理**
 
-```java
-/*
-· 动态代理：
- 	在运行期，利用反射机制，实现抽象角色接口，动态的创建代理对象！
- 	动态代理的所扮演的角色和静态代理一样，但是它比静态代理更加灵活通用！
+  所说的 "动态" 是针对 `使用 Java 代码实际编写了代理类的` “静态”代理 而言的！
 
-· 动态代理的实现方式：
- 	1、基于接口的实现方式：	
- 		jdk 动态代理
- 		
- 	2、基于类的实现方式：
- 		cglib 动态代理
-*/
-```
+  动态代理，能够在程序运行期间，根据给定的 类或者接口，动态生成代理类，并创建代理对象！
 
-###### JDK 的 动态代理
+  ```
+  动态代理一种 字节码增强技术，它根据指定类或者接口的 字节码，生成新的字节码，创建新的类！
+  ```
 
-```java
-/*
- · 代理类 java.util.reflect.Proxy 
- · 作用：
- 	利用动态代理，可以在程序运行时创建一个 实现了一组给定 [ 接口 ] 的代理类对象！
- 	这种功能只有在编译时无法确定需要实现哪个接口时才有必要使用！
- 	
- · 一个动态代理，一般代表一类业务
- 	一个动态代理，可以代表多个 AbstractRole 的实现类
-*/
-```
++ **动态代理 优点：**
 
-###### 代理类 之 方法实现
+  1. 通过动态代理，不需要显示编写代理类！
+  2. 实现了在原始类和接口 还未知的情况下，就能确定代理类的行为，使代理类 与 原始类/接口 解耦，增加了代理类的灵活性，以及代理行为的复用性！
 
-```java
-/*
- · 由上述，代理类需要对 真实角色 进行代理，那就需要在内部处理 真实角色的方法调用，还需要处理公共业务，这是如何实现的呢？
- 	答：
-		通过 调用处理器（invocation hendler） 实现！
-		调用处理器 是 实现了 InvocationHandler接口 的类对象，该接口只声明了一个 invoke 方法。
-		我们正是要在 invoke 方法中，处理 真实角色的 方法的调用，并且 实现公共业务的处理！
++ *实现方式：*
 
- · 无论何时调用代理对象的方法，调用处理器的 invoke 方法都会被调用，处理 真实角色方法调用的同时，附加公共业务！
-*/
+  1. 基于 接口（实现） 的动态代理：JDK 动态代理
+  2. 基于 类（继承） 的动态代理：CGLIB 动态代理
 
-// InvocationHandler 接口中只有 invoke 一个方法！
-public interface InvocationHandler {
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
-    /*
-     param1 ：proxy ：代理角色：用于调用 表示 代理实例 与 调用处理器相关联！
-     paran2 ：method ：所要调用的方法 的 Method对象
-     param3 ：args ：方法参数
-     
-     通过这 3 个参数，就能利用反射机制，调用指定的方法：Object result=method.invoke(obj,args);
-    */
-}
-```
++ **JDK vs CGLIB**
 
-###### 代理类 之 创建代理对象
+  1. JDK 基于接口，代理类 会实现给定的` 一个或者多个`接口。
 
-```java
-/*
- · 由上述，代理类会在运行时，动态生成 代理对象，那是怎么实现的？
-   答：
-   	使用 Proxy 的静态方法 newProxyInstance 创建代理对象
-   	newProxyInstance 方法返回指定接口的代理对象，每个代理实例都要关联一个 调用处理程序，因为 对 被代理角色的所有操作，都在调用处理器中完成！因此，方法调用会分派给指定的调用处理程序！
-*/
-public static Object newProxyInstance(
-    ClassLoader loader,		// 类加载器（null表示使用默认的类加载器）
-    Class<?>[] interfaces,	// Class 对象数组：需要实现的 接口数组
-    InvocationHandler h) {	// 调用处理器	：实现接口方法，并处理接口方法的调用！
-}
-```
+     CGLIB 基于类，代理类 会继承`某个给定的类`。因此，要求被代理的类 和 方法，不能声明为 final 
 
-###### 动态代理  之 代码示例
+  2. JDK 在 调用处理器（InvocationHandler）中 对 被代理的类 做附加的增强行为！
 
-```java
-/*
- · 代码示例：
-*/
+     CGLIB 在 方法拦截器（MethodIntercept）中 对 被代理的类 做附加的增强行为！
 
-// 抽象角色
-public interface AbstractRole {
-    /**
-     * 抽象行为
+  3. JDK 使用 Proxy.newProxyIntance 静态方法，创建代理对象！
+
+     CGLIB 使用 Enhancer 实例，创建代理对象！
+
+  4. JDK 做增强时，所有方法都会调用 同一个 调用处理器 做增强！
+
+     CGLIB 能够 为代理类中的不同方法，注册不同的 方法拦截器！
+
+     ```
+     CGLIB 通过 enhancer 可以注册多个的 MethodIntercept，同时，通过 enhancer注册 回调过滤器（CallbackFilter） 可以决定方法使用 哪一个 MethodIntercept 做增强！
+     ```
+
+##### JDK 动态代理
+
+###### JDK 代理
+
++ JDK 动态代理
+
+  在运行时，通过实现一组给定的接口，并实现接口方法，达到代理的目的！
+
+  通常使用在 编译期 无法确定 需要实现哪一个接口时使用！
+
++ 一个动态代理，一般代表 一类业务：被代理的所有 真实角色，通用同一个 代理增强 逻辑！
+
+  一个动态代理，可以代表多个  AbstractRole 的实现类：实现多组接口！
+
+###### 代理增强
+
++ 问：既然代理类需要对 原始类 做增强，那么，它是在哪儿做增强的呢？
+
+  答：InvocationHandler（调用处理器）接口中的 invoke() 方法，正是实现 代理增强的地方！
+
++ InvocationHandler 接口方法 invoke()
+
+  ```java
+  public interface InvocationHandler {
+      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
+      /*
+       param1 ：proxy ：代理角色：用于调用 表示 代理实例 与 调用处理器相关联！
+       paran2 ：method ：所要调用的方法 的 Method对象
+       param3 ：args ：方法参数
+      */
+  }
+  ```
+
++ **实现步骤：**
+
+  1. 定义一个 *调用处理器（InvocationHandler）的接口实现类，并实现 invoke() 方法* ！
+  2. 在 invoke() 方法中，**调用 Method 实例的 invoke() 方法**：*表示 原始类方法的调用* ！（反射）
+  3. 在 invoke() 方法中，对原始类做 *附加 的代理行为*，增强原始类！
+
++ 调用处理器 的 invoke() 方法，会被 加入到 代理类中，代替原始类方法的调用！
+
+###### 创建代理
+
++ 问：现在可以增强原始类了，那么，代理类又是怎么实现的？
+
+  答：**java.lang.reflect.Proxy 的静态方法 newProxyInstance() 正是用来生成代理类，创建代理对象的！**
+
++ Proxy::newProxyInstance
+
+  ```java
+  public static Object newProxyInstance(
+      ClassLoader loader,		// 类加载器（null表示使用默认的类加载器）
+      Class<?>[] interfaces,	// Class 对象数组：需要实现的 接口数组
+      InvocationHandler h)	// 调用处理器	：实现接口方法，并处理接口方法的调用！
+      { ... }
+  ```
+
++ **实现：**
+
+  向 newProxyInstance 方法**绑定** *类加载器、所要实现的接口、调用处理器* ，**返回值即为 代理对象**！
+
+  ```java
+  MyProxy myProxy = (MyProxy)Proxy.newProxyInstance(
+      realRole.getClass().getClassLoader(),
+      new Class[]{ AbstractRole.class },
+      roleInvocationHandler
+  );
+  ```
+
+  **本质：**
+
+  ```
+   · newProxyInstance 方法会 获取给定的接口的 字节码，并根据 调用处理器，修改这些接口的字节码，生成新的 byte[]，最终通过 绑定好的 类加载器，加载新的 byte[]，生成代理类，最后创建代理对象！
+  ```
+
+###### JDK 代理示例
+
++ 抽象角色
+
+  ```java
+  public interface AbstractRole {
+      // 抽象行为
+      void action();
+  }
+  ```
+
++ 真实角色
+
+  ```java
+  public class RealRole implements AbstractRole {
+      @Override
+      public void action() {
+          System.out.println("hello i am real person");
+      }
+  }
+  ```
+
++ 调用处理器
+
+  ```java
+  // 一个调用处理器 代表了 一类业务！ 
+  public class DynamicProxyInvocationHandler implements InvocationHandler {
+      private AbstractRole abstractRole;
+  
+      DynamicProxyInvocationHandler(AbstractRole role) {
+          this.abstractRole = role;
+      }
+  
+      @Override
+      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+          System.out.println("hello, this is dynamic proxy executing ... ... ");
+          System.out.println("Following is the real one!");
+          // 反射：注意：这里应该填入被代理的真实角色的对象，而不是 代理角色的对象
+          // 如果 method.invoke(proxy,args)：就会引发无限循环调用！
+          // 因为：method.invoke 会调用 proxy.invoke，如果 proxy 为代理对象，那将无限调用！
+          method.invoke(abstractRole, args);
+          System.out.println("proxy end");
+          return null;
+      }
+  }
+  ```
+
++ 顾客
+
+  ```java
+  public class Client {
+      public static void main(String[] args) {
+          // 真实角色
+          RealRole realRole = new RealRole();
+          // 调用处理器
+          DynamicProxyInvocationHandler handler = new DynamicProxyInvocationHandler(realRole);
+          // 动态生成代理类对象
+          AbstractRole proxy = (AbstractRole) Proxy.newProxyInstance(
+              realRole.getClass().getClassLoader(), 
+              new Class[]{AbstractRole.class},
+              handler
+          );
+          // 代理执行
+          proxy.action();
+      }
+  }
+  ```
+
+##### CGLIG 动态代理
+
+###### CGLIB 代理
+
++ CGLIB 动态代理，通过 继承被代理的类，并覆盖 该类的方法，实现 该类的代理！
+
+  因为是 继承类 并且 需要覆盖方法，那就不能将 被代理的类或者方法 声明为 final！
+
+###### 代理增强
+
++ 问：既然代理类需要对 原始类 做增强，那么，它是在哪儿做增强的呢？
+
+  答：**MethodInterceptor 接口的 intercept() 方法，正是 增强原始类的地方！**
+
++ MethodIntercept 接口方法 intercept()
+
+  ```java
+  public interface MethodInterceptor extends Callback {
+    Object intercept(Object var1, Method var2, Object[] var3, MethodProxy var4) throws Throwable;
+  }
+  ```
+
++ **实现步骤：**
+  
+  1. 定义一个 *MethodInterceptor接口的实现类，并实现接口方法 intercept()*  ！
+  2. 在 intercept() 方法中，调用 MethodProxy 实例的 **invokeSuper() 方法**：*表示调用 原始类的 方法*。
+  3. 在 intercept() 方法中，增加 *附加的代理行为，增强原始类*。
+
+###### 创建代理
+
++ 问：现在可以增强原始类了，那么，代理类又是怎么实现的呢？
+
++ 答：**Enhancer 正是用来 生成代理类，创建代理对象的！**
+
++ **实现步骤：**
+
+  1. 定义一个 Enhancer 实例 enhancer
+
+     ```java
+     Enhancer enhancer=new Enhancer();
+     ```
+
+  2. 为代理类绑定 父类（被代理的类 / 代理类的原始类）
+
+     ```java
+     enhancer.setSuperclass(Father.class);
+     ```
+
+  3. 为代理类绑定 增强代理的 MethodIntercept接口实现类
+
+     ```java
+     enhancer.setCallbacks( new Callback[]{ YourMethodIntercept.class } );
+     /*
+      · MethodIntercept 继承了 Callback 接口！
      */
-    void action();
-}
-// 真实角色
-public class RealRole implements AbstractRole {
-    @Override
-    public void action() {
-        System.out.println("hello i am real person");
-    }
-}
+     ```
 
+  4. 创建 代理对象
 
-// 实现自己的 invocation handler：是通用代理的实现：能代理多个 AbstractRole 的实现类！
-public class DynamicProxyInvocationHandler implements InvocationHandler {
-    private AbstractRole abstractRole;
+     ```java
+     Father sonProxy = (Father)enhancer.create();
+     ```
 
-    DynamicProxyInvocationHandler(AbstractRole role) {
-        this.abstractRole = role;
-    }
+###### CGLIB 代理示例
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        System.out.println("hello, this is dynamic proxy executing ... ... ");
-        System.out.println("Following is the real one!");
-        // 反射：注意：这里应该填入被代理的真实角色的对象，而不是 代理角色的对象
-        // 如果 method.invoke(proxy,args)：就会引发无限循环调用：他会调用 proxy.infoke，就是本方法，然后一直循环调用！
-        method.invoke(abstractRole, args);
-        System.out.println("proxy end");
-        return null;
-    }
-}
++ 原始类（父类、被代理的类）
 
-// Client
-public class Client {
-    public static void main(String[] args) {
-        // 真实角色
-        RealRole realRole = new RealRole();
-        // 调用处理器
-        DynamicProxyInvocationHandler handler = new DynamicProxyInvocationHandler(realRole);
-        // 动态生成代理类对象
-        AbstractRole proxy = (AbstractRole) Proxy.newProxyInstance(
-            realRole.getClass().getClassLoader(), 
-            new Class[]{AbstractRole.class},
-            handler
-        );
-        // 代理执行
-        proxy.action();
-    }
-}
+  ```java
+  class Person {
+      public void eat() {
+          System.out.println("我要开始吃饭咯...");
+      }
+  
+      public void play() {
+          System.out.println("我要出去玩耍了,,,");
+      }
+  }
+  ```
 
-```
++ 方法拦截器
 
-######  动态代理 之 典型应用
+  ```java
+  // 第一个方法拦截器
+  class MyApiInterceptor implements MethodInterceptor {
+      @Override
+      public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) 
+          throws Throwable {
+          
+          // 附加行为
+          System.out.println("吃饭前我会先洗手");
+          // 原始类方法调用
+          Object result = proxy.invokeSuper(obj, args);
+          System.out.println("吃完饭我会先休息会儿" );
+          return result;
+      }
+  }
+  // 第二个方法拦截器
+  class MyApiInterceptorForPlay implements MethodInterceptor {
+      @Override
+      public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) 
+          throws Throwable {
+          
+          // 附加行为
+          System.out.println("出去玩我会先带好玩具");
+          // 原始类方法调用
+          Object result = proxy.invokeSuper(obj, args);
+          System.out.println("玩一个小时我就回家了" );
+          return result;
+      }
+  }
+  ```
 
-+ aop：spring 的切面编程
-+ [详见：SpringAOP 源码入手 面向切面编程](https://www.jianshu.com/p/7638a236b8d9)
++ 方法拦截器（回调） 的 选择器
+
+  ```java
+  class CallbackFilterImpl implements CallbackFilter {
+      @Override
+      public int accept(Method method) {
+          if (method.getName().equals("play"))
+              return 1;
+          else
+              return 0;
+      }
+  }
+  ```
+
++ 顾客
+
+  ```java
+  public class TestCglib {
+      public static void main(String[] args) {
+          // 方法拦截器数组（回调数组）
+          Callback[] callbacks = new Callback[] {
+                  new MyApiInterceptor(), new MyApiInterceptorForPlay()
+          };
+          // --------------------------------------------------------------
+          Enhancer enhancer = new Enhancer();
+          // 绑定 所要代理的类
+          enhancer.setSuperclass(Person.class); 
+          // 绑定 方法拦截器
+          enhancer.setCallbacks(callbacks);
+          // 绑定 回调选择器
+          enhancer.setCallbackFilter(new CallbackFilterImpl()); 
+          // 生成代理类，创建代理对象
+          Person person = (Person) enhancer.create();
+          // --------------------------------------------------------------
+          person.eat();
+          System.out.println("eat then play ? ");
+          person.play();
+      }
+  }
+  ```
