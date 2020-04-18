@@ -191,10 +191,10 @@ ThreadPoolExecutor pool = new ThreadPoolExecutor(
 );
 
 // Executors 工具类创建 ———— 不推荐
-ExecutorService service1 = Executors.newFixedThreadPool( nThreads ); // maximumPoolSize
-ExecutorService service2 = Executors.newSingleThreadExecutor(); // maximumPoolSize
-ExecutorService service = Executors.newCachedThreadPool(); // LinkedBlockingQueue
-ExecutorService service3 = Executors.newScheduledThreadPool( corePoolSize); // LinkedBlockingQueue
+ExecutorService service1 = Executors.newFixedThreadPool( nThreads ); // LinkedBlockingQueue
+ExecutorService service2 = Executors.newSingleThreadExecutor(); // LinkedBlockingQueue
+ExecutorService service = Executors.newCachedThreadPool(); // maximumPoolSize
+ExecutorService service3 = Executors.newScheduledThreadPool( corePoolSize); // maximumPoolSize
 ```
 
 ##### 线程启动：start() VS run()
