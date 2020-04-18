@@ -634,7 +634,7 @@
   -->
   ```
 
-+ cookie 规范（Set-Cookie） 定义了服务器和客户端交互信息的格式、生存期、使用范围、安全性！
++ cookie 规范（`Set-Cookie`） 定义了服务器和客户端交互信息的格式、生存期、使用范围、安全性！
 
 + Set-Cookie 首部字段
 
@@ -694,14 +694,14 @@
 
 ###### session 机制
 
-1. session 表示会话，用于保存用户的状态、登录信息。在 服务端创建，并保存在服务端内存中！
+1. session 表示会话，用于保存用户的信息、登录状态。在 服务端创建，并保存在服务端内存中！
 
 2. session 机制
 
    ```html
    <!--
     · session 创建
-   	1、客户端第一次访问服务端时，服务端 为其创建一个 管理会话信息的 session，并将 session 保存在内存中！同时将唯一标志该 session 的 session id 保存在 cookie 中，响应给客户端！
+   	1、客户端第一次访问服务端时，服务端 为其创建一个 管理会话信息的 session，并将 session 保存在内存中！同时将唯一标志这个 session 的 session id 保存在 cookie 中，响应给客户端！
    	
    	2、客户端收到响应后，将 cookie 保存在本地，下次请求时将 cookie 中的 session id 携带上！
    	3、服务端收到带有 session id 的cookie 之后，就会在内存中查找 对应的 session 是否存在！
@@ -724,7 +724,7 @@
 
   由于session存放着用户的身份信息和权限信息，所以如果session不能共享，整个系统的功能便失去了意义。
 
-  例如：系统可能会重复的提醒用户登录。	
+  例如：系统可能会重复的要求用户登录。	
 
 ###### session id 覆盖
 
@@ -734,13 +734,13 @@
 
 + 原因：
 
-  当两个 web 应用的 session id 这个 cookie 在同一个作用域内时（cookie 的 domain 相同，并且 path 也相同），就会出现 session 覆盖问题！因为，在浏览器端，两个应用的 cookie 是存放在一起的！
+  当两个 web 应用的 session id 这个 cookie 在同一个`cookie域`内时（cookie 的 domain 相同，并且 path 也相同），就会出现 session 覆盖问题！因为，在浏览器端，两个应用的 cookie 是存放在一起的！
 
 + 实质 是 cookie 共享的问题！
 
   实际上出现 session id 覆盖，是因为，两个应用在浏览器端，共享了 同一个 session id  这个 cookie ！
 
-  + 当两个 Web 应用的  cookie 在同一个作用域内（domain 、 path 都相同同），则两个 应用 共享各自的 cookie！
+  + 当两个 Web 应用的  cookie 在同一个`cookie域`内`(domain 、 path 都相同)`，则两个 应用 共享的cookie！
 
   + 当两个 Web 应用的 cookie 的作用域互不相干时，两着 cookie 存储也互不相干！
 
@@ -772,14 +772,14 @@
 
   解答：
 
-  ​		上述 A、B 应用的 JSESSIONID 生成时，使用的是默认的 domain 和 path（与 端口无关），所以 A 与 B 的 JESSIONID 这个 cookie 的域完全相同，此时，A、B 之间访问时，会出现 session id 覆盖的问题！
+  ​		上述 A、B 应用的 JSESSIONID 生成时，使用的是默认的 `domain 和 path（与 端口无关）`，所以 A 与 B 的 JESSIONID 的 `cookie域`完全相同，此时，A、B 之间访问时，会出现 session id 覆盖的问题！
 
-  ​		而 A 中的 confirm 这个 cookie 的作用域包含了 B ，所以，匹配 B 的cookie 时，A 的 confirm 这个 cookie 也会被匹配出来！
+  ​		而 A 中的 confirm 这个 cookie 的 `path域`包含了 B ，所以，匹配 B 的cookie 时，A 的 confirm 这个 cookie 也会被匹配出来！
 
 ##### Cookie vs Session
 
 + **Cookie 只能存储 ASCII 码**，而 **Session 可以存储任何类型的 数据**，因此在 数据复杂性方面，优选 Session
-+ **Cookie 存储在浏览器中，容易被恶意查看**。如果非要将隐私数据存入 Cookie 中，**可以将 Cookie 值加密，然后在服务端进行加密**！
++ **Cookie 存储在浏览器中，容易被恶意查看（XSS攻击）**。如果非要将隐私数据存入 Cookie 中，**可以将 Cookie 值加密，然后在服务端进行加密**！
 + 对于大型网站，**如果用户所有的信息都存放在 session 中，那是会非常消耗资源的**，因此不建议将所有用户的信息都存放在 session 中！
 
 ##### HTTP ETag
@@ -1050,7 +1050,7 @@
 
 + **缺点**
 
-  算法复杂度，*运算速度慢！*
+  算法复杂度高，*运算速度慢！*
 
   [非对称加密：RSA 原理](https://blog.csdn.net/wjiabin/article/details/85228078)
 
@@ -1078,7 +1078,7 @@
 
 + 为什么需要 CA认证？
 
-  CA 认证用于验证 公钥的 真实性！因为很容易出现中间人攻击！
+  CA 认证用于验证 公钥的 真实性！避免出现中间人攻击！
 
   ```html
   <!--
@@ -1111,7 +1111,7 @@
 
 1. 服务端运营人员 将自己的公钥 登录到 数字认证机构。
 
-2. 认证机构判明申请者身份之后，用自己的 私有密钥 为 服务端的公钥 部署数字签名，并为服务端颁发公钥证书！
+2. 认证机构判明申请者身份之后，用机构的 私有密钥 为 服务端的公钥 部署数字签名，并为服务端颁发公钥证书！
 
 3. 之后，进行 HTTPS 通信时，服务端会将这个公钥证书发送给客户端。
 
@@ -1119,7 +1119,7 @@
 
    如果解密成功说明：
 
-   + 为服务端颁发公钥证书的机构 是 有效的认证机构！
+   + 为 服务端 颁发公钥证书的机构 是 有效的认证机构！
    + 服务端的公钥是值得信赖的！
 
    `认证机构的 公钥 是内置在浏览器中的！`
