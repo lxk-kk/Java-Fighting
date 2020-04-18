@@ -463,25 +463,26 @@ public class Solution {
 
 + **JDK vs CGLIB**
 
-  1. JDK 基于接口，代理类 会实现给定的` 一个或者多个`接口。
+  ```
+   1. JDK 基于接口，代理类 会实现给定的` 一个或者多个`接口。
+  	CGLIB 基于类，代理类 会继承`某个给定的类`。因此，要求被代理的类 和 方法，不能声明为 final 
+  ```
 
-     CGLIB 基于类，代理类 会继承`某个给定的类`。因此，要求被代理的类 和 方法，不能声明为 final 
+  ```
+   2. JDK 在 调用处理器（InvocationHandler）中 对 被代理的类 做附加的增强行为！
+   	CGLIB 在 方法拦截器（MethodInterceptor ）中 对 被代理的类 做附加的增强行为！
+  ```
 
-  2. JDK 在 调用处理器（InvocationHandler）中 对 被代理的类 做附加的增强行为！
+  ```
+   3. JDK 使用 Proxy.newProxyIntance 静态方法，创建代理对象！
+  	CGLIB 使用 Enhancer 实例，创建代理对象！
+  ```
 
-     CGLIB 在 方法拦截器（MethodIntercept）中 对 被代理的类 做附加的增强行为！
-
-  3. JDK 使用 Proxy.newProxyIntance 静态方法，创建代理对象！
-
-     CGLIB 使用 Enhancer 实例，创建代理对象！
-
-  4. JDK 做增强时，所有方法都会调用 同一个 调用处理器 做增强！
-
-     CGLIB 能够 为代理类中的不同方法，注册不同的 方法拦截器！
-
-     ```
-     CGLIB 通过 enhancer 可以注册多个的 MethodIntercept，同时，通过 enhancer注册 回调过滤器（CallbackFilter） 可以决定方法使用 哪一个 MethodIntercept 做增强！
-     ```
+  ```
+   4. JDK 做增强时，所有方法都会调用 同一个 调用处理器 做增强！
+   	CGLIB 能够 为代理类中的不同方法，注册不同的 方法拦截器！
+  	CGLIB 通过 enhancer 可以注册多个的 MethodInterceptor ，同时，通过 enhancer注册 回调过滤器（CallbackFilter） 可以决定方法使用 哪一个 MethodInterceptor  做增强！
+  ```
 
 ##### JDK 动态代理
 
