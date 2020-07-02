@@ -133,6 +133,17 @@
 
 + Netty 的**出站**和**入站**都是异步的。异步回调的方法，和 Netty 建立异步回调是一样的。
 
+  ```
+  入站：输入
+  出站：输出
+  ```
+
++ ChannelInboundHandler：处理入站的 IO 事件的接口
+
+  ChannelInboundHandlerAdapter：提供的入站处理的默认实现。
+
+  如果想要实现自己的入韩处理器 Handler，只要继承 ChannelInboundHandlerAdapter 入站处理器，再写入自己的入站处理的业务逻辑。在 channelRead 方法中可以读取入站的数据！
+
 + 示例：NIO 出站 --- write
   
   + 在调用 write 操作之后，Netty 并没有完成对 Java NIO 底层连接的写入操作，因为是**异步的：NIO 同步非阻塞啊！**
