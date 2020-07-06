@@ -1,6 +1,6 @@
 ### Netty
 
-#### Netty 介绍
+##### Netty 介绍
 
 1. Netty 是为了快速开发 可维护的 高性能、高可扩展的 网络服务器 和 客户端程序 而提供的异步事件驱动的基础框架和工具。
 
@@ -173,6 +173,7 @@
   默认实现 分别实现了 入站操作 和出站操作的基本功能。分别继承这两个通道适配器，开发者就可以实现自己的业务处理器。
   
 + 入站处理器 ChannelInboundHandler ：ChannelInboundHandlerAdapter 通道入站处理器适配器
+  
   + 出站处理器 ChannelOutboundHandler ：ChannelOutboundHandlerAdapter 通道出站处理器适配器
   
 + 由于 Netty 中的 通道和Handler 之间是 多对多的关系，为了组织好各自的绑定关系，Netty 设计了一个特殊的组件：ChannelPipeline
@@ -313,11 +314,162 @@
 
 ###### ChannelHandler 生命周期
 
-```
-以 ChannelInboundHandler 生命周期 为例！
-```
++ 代码示例：以 ChannelInboundHandler 生命周期 为例！
 
+  ```
+  入站处理器的生命周期与入站处理器的生命周期大致相同，不同的时 出站处理器的业务处理（出站回调处理方法？）
+  ```
 
+  + ChannelInboundHandler  实现类
+
+    ```java
+    /**
+     * @author 10652
+     */
+    public class InHandlerDemo extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：channelRegistered()");
+            super.channelRegistered(ctx);
+        }
+    
+        @Override
+        public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：channelUnregistered()");
+            super.channelUnregistered(ctx);
+        }
+    
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：channelActive()");
+            super.channelActive(ctx);
+        }
+    
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：channelInactive()");
+            super.channelInactive(ctx);
+        }
+    
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            System.out.println("调用：channelRead()");
+            super.channelRead(ctx, msg);
+        }
+    
+        @Override
+        public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：channelReadComplete()");
+            super.channelReadComplete(ctx);
+        }
+    
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：handlerAdded()");
+            super.handlerAdded(ctx);
+        }
+    
+        @Override
+        public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+            System.out.println("调用：handlerRemoved()");
+            super.handlerRemoved(ctx);
+        }
+    }
+    ```
+
+  + Test
+
+    ```java
+    public class Test {
+        public static void main(String[] args) throws InterruptedException {
+            // 入站处理器 Demo
+            final InHandlerDemo inHandlerDemo = new InHandlerDemo();
+            // 通道初始化器：在通道工作之前为通道配置 处理器
+            // EmbeddedChannel ：嵌入式通道（模拟）
+            ChannelInitializer initializer = new ChannelInitializer<EmbeddedChannel>() {
+                @Override
+                protected void initChannel(EmbeddedChannel embeddedChannel) throws Exception {
+                    System.out.println("调用：initChannel()：为通道流水线初始化 handler");
+                    embeddedChannel.pipeline().addLast(inHandlerDemo);
+                }
+            };
+            
+            // 创建通道
+            System.out.println("--------------step 0-----------------");
+            EmbeddedChannel channel = new EmbeddedChannel(initializer);
+    
+            ByteBuf buf = Unpooled.buffer();
+            buf.writeInt(1);
+            Thread.sleep(50);
+    
+            // 两次模拟入站，写入入站数据包
+            System.out.println("--------------step 1-----------------");
+            channel.writeInbound(buf);
+            channel.flush();
+            channel.writeInbound(buf);
+            channel.flush();
+            Thread.sleep(50);
+    
+            // 通道关闭
+            System.out.println("--------------step 2-----------------");
+            channel.close();
+        }
+    }
+    ```
+
+  + 测试结果
+
+    ```
+    --------------step 0-----------------
+    调用：initChannel()：为通道流水线初始化 handler
+    调用：handlerAdded()
+    调用：channelRegistered()
+    调用：channelActive()
+    --------------step 1-----------------
+    调用：channelRead()
+    调用：channelReadComplete()
+    调用：channelRead()
+    调用：channelReadComplete()
+    --------------step 2-----------------
+    调用：channelInactive()
+    调用：channelUnregistered()
+    调用：handlerRemoved()
+    ```
+
++ 解析：
+
+  上述方法分类：
+
+  1. 生命周期方法：
+
+     通道创建时：handlerAdd、channelRegistered、channelActive 
+
+     通道关闭时： channelInactive、channelUnregistered、handlerRemove 
+
+  2. 入站回调方法：
+
+     channelRead、channelReadComplete
+
++ 生命周期方法解析：
+
+  ```
+  1. handlerAdded ：当 handler 加入到通道流水线后，此方法被回调。即：ch.pipeline().addLast(hanlder) 后回调
+  2. channelRegistered ：当通道成功绑定一个 NioEventLoop 线程后，会通过流水线回调所有 处理器handler 的 channelRegistered 方法。
+  3. channelActive ：当通道激活成功后，会通过流水线回调所有业务处理器的 channelActive 方法。
+    通道激活成功：即所有 handler 的添加、注册 等异步任务完成，并且 NioEventLoop 线程绑定异步任务完成。
+    
+  4. channelInactive ：当通道的底层连接已经不是 ESSTABLISH 状态，或者底层连接已经关闭时，会首先回调所有业务处理器的 channelInactive 方法。
+  5. channelUnregistered ：通道 和 NioEventLoop 线程接触绑定，移除掉对这条通道的事件处理之后，回调所有 handler 的 channelUnregistered 方法。
+  6. handlerRemoved ：最后 Netty 会移除掉通道上所有的 handler 并回调所有 handler 的 handlerRemoved 方法
+  ```
+
++ 入站回调方法解析：
+
+  ```
+  1. channelRead ：有数据包入站，通道可读。
+    流水线会启动入站处理器流程，从前向后，入站处理器的 channelRead 方法会依次回调。
+  2. channelReadComplete ：流水线完成入站处理后，会从前向后，依次回调每个入站处理器的 channelReadComplete 方法，表示数据读取完毕。
+  ```
 
 ##### Netty Pipeline
 
