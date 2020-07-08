@@ -473,11 +473,17 @@
 
 ##### Netty Pipeline
 
-+ 通道流水线 将绑定到一个 通道的多个 Handler 处理器实体 链接在一起，形成一条流水线（双向链表结构）。所有的 Handler 实例被封装成一个阶段，加入到了 ChannelPipeline 中。
+###### 介绍
+
++ 通道流水线 将绑定到一个 通道的多个 Handler 处理器实体 链接在一起，形成一条流水线（**双向链表**结构）。所有的 Handler 实例被封装成一个结点，加入到了 ChannelPipeline 中。
 
 + 声明：
 
   一个 Netty 通道拥有一条 Handler 处理器流水线（组合的方式：成员名称为 pipeline）
+
+  Netty 是基于 **责任链模式** 设计的 处理器流水线，内部是一个 双向链表 结构，能够支持动态的添加和删除 Handler 业务处理器。
+
+###### pipeline
 
 + 流水线 Handler 处理顺序：
 
@@ -487,6 +493,251 @@
   + 出站事件：从后往前流动，只会且只能从 Outbound 出站处理器类型的 Handler 流过
 
   <img src="image\流水线.jpg" style="zoom:80%;" />
+  
++ *代码示例*
+
+  ```java
+  /**
+   * @author 10652
+   */
+  public class PipelineTest {
+      public static void main(String[] args) {
+          testInHandle();
+          System.out.println("-----");
+          testOutHandle();
+      }
+      // 出站示例
+      private static void testOutHandle() {
+          ChannelInitializer<EmbeddedChannel> initializer = new ChannelInitializer<EmbeddedChannel>() {
+              @Override
+              protected void initChannel(EmbeddedChannel embeddedChannel) throws Exception {
+                  embeddedChannel.pipeline().addLast(new OutHandleA());
+                  embeddedChannel.pipeline().addLast(new OutHandleB());
+                  embeddedChannel.pipeline().addLast(new OutHandleC());
+              }
+          };
+          EmbeddedChannel channel = new EmbeddedChannel(initializer);
+          ByteBuf buf = Unpooled.buffer();
+          buf.writeInt(0);
+          channel.writeOutbound(buf);
+      }
+      // 入站示例
+      private static void testInHandle() {
+          ChannelInitializer initializer = new ChannelInitializer<EmbeddedChannel>() {
+              @Override
+              protected void initChannel(EmbeddedChannel embeddedChannel) throws Exception {
+                  embeddedChannel.pipeline().addLast(new InHandleA());
+                  embeddedChannel.pipeline().addLast(new InHandleB());
+                  embeddedChannel.pipeline().addLast(new InHandleC());
+              }
+          };
+          EmbeddedChannel channel = new EmbeddedChannel(initializer);
+          ByteBuf buf = Unpooled.buffer();
+          buf.writeInt(1);
+          channel.writeInbound(buf);
+      }
+      // 出站处理器 A、B、C
+      static class OutHandleA extends ChannelOutboundHandlerAdapter {
+          @Override
+          public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+              System.out.println("out handle a");
+              super.write(ctx, msg, promise);
+          }
+      }
+  
+      static class OutHandleB extends ChannelOutboundHandlerAdapter {
+          @Override
+          public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+              super.write(ctx, msg, promise);
+              System.out.println("out handle b");
+          }
+      }
+  
+      static class OutHandleC extends ChannelOutboundHandlerAdapter {
+          @Override
+          public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+              System.out.println("out handle c");
+              super.write(ctx, msg, promise);
+          }
+      }
+      // 入站处理器 A、B、C
+      static class InHandleA extends ChannelInboundHandlerAdapter {
+          @Override
+          public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+              System.out.println("in handle a");
+              super.channelRead(ctx, msg);
+          }
+      }
+  
+      static class InHandleB extends ChannelInboundHandlerAdapter {
+          @Override
+          public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+              System.out.println("in handle b");
+              super.channelRead(ctx, msg);
+          }
+      }
+  
+      static class InHandleC extends ChannelInboundHandlerAdapter {
+          @Override
+          public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+              System.out.println("in handle c");
+              super.channelRead(ctx, msg);
+          }
+      }
+  }
+  ```
+
+  *测试结果*
+
+  ```
+  in handle a
+  in handle b
+  in handle c
+  -----
+  out handle c
+  out handle a
+  out handle b
+  ```
+
++ **注意：**
+
+  上述 处理器调用链（出站、入站），如果断链，则后续处理器结点都不会执行！
+
+###### ChannelHandlerContext
+
++ ChannelHandlerContext：通道处理器上下文
+
+  处理器都是以 双向链表的结构 保存在 pipeline 中的，而 ChannelHandlerContext 就是一个 Handler 结点
+
+  ```java
+  public class DefaultChannelPipeline implements ChannelPipeline {
+      private static final String HEAD_NAME = generateName0(DefaultChannelPipeline.HeadContext.class);
+      private static final String TAIL_NAME = generateName0(DefaultChannelPipeline.TailContext.class);
+  
+      final AbstractChannelHandlerContext head;
+      final AbstractChannelHandlerContext tail;
+      // ... ...
+      // 如下默认 通道流水线 的初始化方法：
+      protected DefaultChannelPipeline(Channel channel) {
+          // ... ...
+          this.tail = new DefaultChannelPipeline.TailContext(this);
+          this.head = new DefaultChannelPipeline.HeadContext(this);
+          this.head.next = this.tail;
+          this.tail.prev = this.head;
+      }
+      
+      final class TailContext extends AbstractChannelHandlerContext implements ChannelInboundHandler {
+          TailContext(DefaultChannelPipeline pipeline) {
+              super(pipeline, (EventExecutor)null, DefaultChannelPipeline.TAIL_NAME, DefaultChannelPipeline.TailContext.class);
+              this.setAddComplete();
+          }
+          // ... ...
+      }
+  
+      final class HeadContext extends AbstractChannelHandlerContext implements ChannelOutboundHandler, ChannelInboundHandler {
+          HeadContext(DefaultChannelPipeline pipeline) {
+              super(pipeline, (EventExecutor)null, DefaultChannelPipeline.HEAD_NAME, DefaultChannelPipeline.HeadContext.class);
+              this.unsafe = pipeline.channel().unsafe();
+              this.setAddComplete();
+          }
+      }
+  }
+  ```
+
++ handler 添加到 pipeline 时，会创建一个 通道处理器上下文 ChannelHandlerContext，构建 上下文 双向链表。
+
+  ```java
+  public class DefaultChannelPipeline implements ChannelPipeline {
+      // 添加 handler
+      public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
+          AbstractChannelHandlerContext newCtx;
+          synchronized(this) {
+              checkMultiplicity(handler);
+              newCtx = this.newContext(group, this.filterName(name, handler), handler);
+              // 创建新结点，并添加到 链表中（通道处理器上下文）
+              this.addLast0(newCtx);
+              if (!this.registered) {
+                  newCtx.setAddPending();
+                  this.callHandlerCallbackLater(newCtx, true);
+                  return this;
+              }
+  
+              EventExecutor executor = newCtx.executor();
+              if (!executor.inEventLoop()) {
+                  this.callHandlerAddedInEventLoop(newCtx, executor);
+                  return this;
+              }
+          }
+  
+          this.callHandlerAdded0(newCtx);
+          return this;
+      }
+      
+      // 创建新结点，并添加到 链表中（通道处理器上下文）
+      private void addLast0(AbstractChannelHandlerContext newCtx) {
+          AbstractChannelHandlerContext prev = this.tail.prev;
+          newCtx.prev = prev;
+          newCtx.next = this.tail;
+          prev.next = newCtx;
+          this.tail.prev = newCtx;
+      }
+  }
+  ```
+
++ ChannelHandlerContext 的两类方法：
+
+  1. 获取上下文关联的 Netty 组件：通道、流水线、上下文内部 Handler 处理器 等实例
+  2. 入站和出站方法
+
++ 通道（Channel）、流水线（ChannelPipeline）、处理器（ChannelHandler）、通道处理器上下文（ChannelHandlerContext）：
+
+  **一条 Channel 中拥有一条 ChannelPipeline，流水线以 双向链表 表示，每个结点是一个 ChannelHandlerContext，而 ChannelHandlerContext 中封装的是  ChannelHandler。**
+
+###### Pipeline 截断
+
++ 执行下一个 入站处理器 handler 的方式：
+
+  ```
+  1. super.channelXXX( ctx, msg );
+  2. ctx.fireChannelXXX( );
+  ```
+
+  因此：只要在处理器执行的过程中，如果条件不满足就不调用上述方法，此时后续 handler 将不会被截断
+
++ 出站处理流程只要执行，就不能被截断，强行接断时会导致 Netty 异常。**【？测试的时候没有 异常】**
+
+  如果条件不满足，可以不启动出站处理。
+
+###### Pipeline 热插拔
+
++ pipeline 中定义了 handler 的增删方法。
+
+  由于双向链表的 上下文结点 ChannelHandlerContext 中保持了 本 流水线的实例，因此在 handler 链工作时，能够通过 ChannelHandlerContext 结点动态删除 handler！
+
+  ```java
+  abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, ResourceLeakHint {
+      private final DefaultChannelPipeline pipeline;
+      // ... ...
+  
+      // 参数中的 pipeline 就是本结点所在的 流水线 实例。
+      AbstractChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutor executor, String name, Class<? extends ChannelHandler> handlerClass) {
+          // ... ...
+          this.pipeline = pipeline;
+      }
+  }
+  ```
+
++ 使用方法：
+
+  ```
+  ctx.pipeline().remove(this); // 删除本结点
+  ctx.pipeline().addLast(...); // 添加
+  ... ...
+  ```
+
++ 为什么需要 删除 呢？
+
+  满足某条件后，需要删除本结点，初始化时只需要执行一次 handler
 
 ##### Netty Bootstrap
 
