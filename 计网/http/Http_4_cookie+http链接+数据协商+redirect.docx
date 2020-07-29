@@ -1,0 +1,73 @@
+【cookie】
+1、cookie是在服务端返回数据的时候通过Set-Cookie头部设置的。浏览器保存cookie之后，在下一次同域请求中就会带上这个cookie。
+2、浏览器自动带上
+3、cookie是键值对形式，可以设置多个。
+4、属性：
+	max-age、expires：设置过期时间
+	Securce：表示只有在https时才会带上这个cookie，http请求中不会带上cookie
+	HttpOnly：设置了这个属性之后，客户端便无法通过document.cookie访问这个cookie。
+		这是为了防止CSRS攻击：这种攻击会在网页中注入一些脚本，或者是通过一个url来引导用户去给攻击者的服务器发送用户自己的cookie（即网站设置在用户浏览器中的cookie），这样攻击者就能获得用户的登录状态，利用这个cookie来访问网站中保存的用户的数据。 
+		例如：'Set-Cookie':['id=123;max-age=2','myId=456;HttpOnly']
+	domain：设置cookie的域
+		不同域名之间cookie是不能共享的，也不能跨域设置cookie。
+		同样的不能在二级域名下设置一级域名的cookie。如果想要在一级域名下设置cookie，以便于一级域名下的所有二级域名应用都能够访问这个cookie，则应该在一级域名下设置cookie。
+			例如：
+				有a.test.com和b.test.com两个域名，想要公用cookie，则需要在以及域名test.com下设置cookie，以供其下的a和b两个二级域名共用cookie。
+				if(host==='test.com'){
+					response.writeHead(200,{
+						'Content-Type':'test/html',
+						'Set-Cookie':['id=123;max-age=2','abc=456;domain=test.com']
+					})
+				}
+【http长连接】
+1、http请求是在tcp连接的基础上发送的。tcp的连接分为长连接和短连接。
+	长连接：一次tcp连接可供多个http请求响应使用。
+	短连接：一个http请求响应一次tcp连接。
+2、设置长连接：默认是长连接
+	'Connection':'keep-alive'：下一个http请求会等待上一个http请求响应完成后复用tcp连接，而不用重新三次握手建立tcp连接。
+3、关闭长连接，即短连接：
+	'Connection':'close'
+4、在http2中提出了新的复用技术：信道复用，支持在一个tcp连接中并发发送http请求。同一个域下，所有请求都在一个tcp连接下完成。
+
+【数据协商】
+简介：客户端发送请求的时候，客户端会声明该请求的响应的数据格式以及数据相关的性质，服务端会根据客户端的声明返回相应格式的响应数据。
+1、请求Accept
+	Accept：请求中通过Accept声明指定所需要的数据类型。它会根据MIME-Type(主类型/分类型)的声明进行限制，来告诉服务端，客户端所需要的数据类型。
+	Accept-Encoding：设置数据传输的编码方式，主要限制服务端对数据进行压缩。目前有：gzip、deflate、br等
+	Accept-Language：响应数据展示的语言
+	User-Agent：用户表示浏览器的相关信息。
+		Accept-Language:zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7
+			各种语言之间使用逗号","分隔，q表示权重，与对应语言之间使用分号";"分隔。
+		例如：移动端的user-agent和pc端的user-agent是不一样的，可以根据这个判断所要响应的是哪种客户端。
+2、响应Content
+	Content-Type：对应于Accept。Accept中有多种可接收的数据格式，Content-Type可以从其中选择一种作为真正的返回数据格式进行返回。？？？？
+		在返回的时候就要声明这个Content-Type：表示实际返回的数据类型，因为客户端会据此进行判断，进而将数据合理的显示。
+	Content-Encoding：对应于Accept-Encoding，声明服务端具体响应时数据压缩的方式。
+	Content-Language：对应于Accept-Language。
+	在服务端响应时，除了设置Content-Type还可以设置X-Content-Type-Options头部：
+		'X-Content-Type-Options':'nosniff'
+			在以前的ie浏览器中，客户端可能会认为服务端没有声明或者没有正确声明Content-Type，客户端会自行预测响应的数据类型，这样会导致一些安全性的问题，例如：本应该是以文本的形式显示的html代码，结果却以脚本的方式被运行，导致安全信息被泄露。
+			所以声明这个头部，就是令浏览器不要自己预测响应内容的数据格式。（了解即可，目前很少用到）
+
+3、发送请求时的Content-Type：
+注意：multipart/form-data：将表单分成多个部分传输，由于文件是以二进制格式传输，不能通过字符串传输，所以需要将二进制文件和普通数据分开传送。
+
+【redirect】
+在服务器中资源位置变更后，当用户访问旧的资源地址时，服务端应该跳转到新的资源位置。同时设置响应状态301或者302
+1、在头部中添加新的url
+	'Location':'/new'：这里不需要填写ip和host，默认同域。这里会跳转到/new的controller层访问资源。
+2、设置响应状态
+	响应状态：302：（暂时跳转）对于同一个资源，每次都会通过旧的资源地址跳转到新的资源地址。
+	响应状态：301：（永久跳转）定义：该链接已经永久变为一个新的路由。浏览器在收到301响应后，会将新的路由进行缓存（disk cache），这是没有失效时长的，浏览器会尽量保存该缓存。
+		当用户再一次通过旧地址访问资源时，便直接通过缓存，跳转到新的路由，而不需要通过服务端跳转。
+		所以，301慎用，若响应状态设置为301，一旦资源地址又被更改，则资源的跳转状态将由用户是否清除缓存决定。
+
+【CSP：Content-Security-Policy】
+内容安全策略：http为了网站的安全做了以下的一系列策略：
+1、限制资源的获取：网站资源从何处获取，http请求发送到何处，这些可以通过CSP设置
+2、报告资源获取越权：若在网页中获取一些网站不该获取的资源时，可以通过Content-Security-Policy向服务端发送报告，做出相应的调整
+3、限制方式：
+	default-src：限制全局，所有和请求链接url有关的东西，都可限制作用范围
+	制定资源类型：限制资源范围
+		资源类型：connect-src、img-src、manifest-src、font-src、frame-src、script-src、media-src、style-src...
+（详细内容见：MDN上搜索CSP）

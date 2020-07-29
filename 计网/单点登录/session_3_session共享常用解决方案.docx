@@ -1,0 +1,8 @@
+1、session复制：应用服务器之间复制ssession
+2、session绑定：nginx在负载均衡的时候进行ip hash使得同一个客户端的请求始终到达一个应用服务器上
+4、cookie存放session
+3、session服务器：使用专门的session服务器管理session，所有应用服务器session的读写都需要访问该session服务器
+
+问题：同一服务器下的不同端口，如何保证session一致：
+	1、可用cookie存放session
+	2、SpringSession解决session共享问题

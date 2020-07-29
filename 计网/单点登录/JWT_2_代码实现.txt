@@ -1,0 +1,208 @@
+【JWT代码实现】
+
+********工具类********
+
+/**
+ * @author 10652
+ */
+@Slf4j
+public class TokenAccessUtil {
+
+    /**
+     * 生成的密钥：用于加密解密token
+     * <p>
+     * 可以通过字符串直接获得密钥的byte[]
+     * TokenConstant.TOKEN_SECRET_KEY.getBytes("UTF-8");
+     * 不管哪种方式，最终得到一个byte[]类型的key即可，再将其进行封装生成SecretKey
+     *
+     * @return SecretKey
+     */
+    public static SecretKey generateTokenKey() {
+        /*
+            将密钥使用base64加密成byte[]
+         */
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] encodeKey = decoder.decode(TokenConstant.TOKEN_SECRET_KEY);
+        SecretKey secretKey = new SecretKeySpec(encodeKey, 0, encodeKey.length, "AES");
+        return secretKey;
+    }
+
+    /**
+     * 生成subject信息
+     *
+     * @param subject 要转换的对象
+     * @return java对象->JSON字符串出错时返回null：fastJson内部自动判断并且返回null
+     */
+    public static String generateSubject(Object subject) {
+        return JSONObject.toJSONString(subject);
+    }
+
+    /**
+     * 签发JWT，生成token
+     *
+     * @param id        jwt的唯一身份标识，主要用来作为一次性token，从而避免重放攻击
+     * @param iss       jwt签发者
+     * @param subject   jwt所面向的用户。payload中记录的public claims。当前环境中就是用户的登录名
+     * @param ttlMillis 过期时长
+     * @return token
+     */
+    public static String createJWT(String id, String iss, String subject, long ttlMillis) {
+        //加密算法
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        //密钥
+        SecretKey secretKey = generateTokenKey();
+        //当前时间
+        long currentMillis = System.currentTimeMillis();
+        //当前时间的日期对象
+        Date currentTime = new Date(currentMillis);
+        //创建JWT的构建器。就是使用指定的信息和加密算法，生成token的工具
+        JwtBuilder builder = Jwts.builder()
+                //设置token的身份标识，一个客户端的唯一标识。可以使用用户主键id，客户端ip，服务器生成的随机数等
+                .setId(id)
+                //设置payload中的public claims
+                .setSubject(subject)
+                //设置签发JWT（生成token）的时间
+                .setIssuedAt(currentTime)
+                //设置签发者
+                .setIssuer(iss)
+                //指定加密算法和加密算法
+                .signWith(signatureAlgorithm, secretKey);
+        if (ttlMillis > 0) {
+            //设置token的失效时间
+            long expireMillis = ttlMillis + currentMillis;
+            Date expireTime = new Date(expireMillis);
+            builder.setExpiration(expireTime);
+        }
+        //生成token
+        return builder.compact();
+    }
+
+
+    /**
+     * 验证token
+     *
+     * @param token token
+     * @return 验证结果
+     */
+    public static TokenValidation validateJWT(String token) {
+        TokenValidation validation = new TokenValidation();
+        Claims claims;
+        try {
+            claims = parseJWT(token);
+            validation.setClaims(claims);
+            validation.setCode(0);
+            validation.setMessage("验证成功");
+        } catch (ExpiredJwtException e) {
+            log.error("【token 校验】 token校验超时：{}", e.getMessage());
+            validation.setCode(1);
+            validation.setMessage("token失效");
+        } catch (SignatureException e) {
+            log.error("【token 校验】 token校验失败：{}", e.getMessage());
+            validation.setCode(2);
+            validation.setMessage("token错误");
+        } catch (Exception e) {
+            log.error("【token 校验】 {}", e.getMessage());
+            validation.setCode(2);
+            validation.setMessage("token异常");
+        }
+        return validation;
+    }
+
+    /**
+     * 解析token字符串
+     *
+     * @param token 服务器为客户端生成的签名数据token
+     * @return claims
+     */
+    private static Claims parseJWT(String token) {
+        //解析token，首先需要拿到加密token的密钥
+        SecretKey secretKey = generateTokenKey();
+        //通过密钥解密，getBody获取token中记录的payload数据。就是payload中保存的所有claims
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+    }
+}
+
+********静态变量类********
+
+/**
+ * @author 10652
+ */
+public class TokenConstant {
+    /**
+     * 服务器的key，用于做加密解密的key数据，如果需要使用客户端生成的key，则当前常量可不使用
+     * 注意下划线"_"不合法，不能使用ISO_8859_1编码
+     */
+    public static final String TOKEN_SECRET_KEY = "lxkLogin";
+    /**
+     * 设置token失效时长，注意单位为毫秒
+     */
+    public static final Integer TOKEN_EXPIRE = 60 * 60 * 1000;
+
+    /**
+     * 设置签发者
+     */
+    public static final String ISSURE = "lxk";
+}
+
+********实体类********
+
+/**
+ * @author 10652
+ */
+@Data
+public class TokenValidation {
+    Integer code;
+    String message;
+    Claims claims;
+
+    public TokenValidation() {
+    }
+}
+
+
+********Controller层********
+
+/**
+ * @author 10652
+ */
+@Slf4j
+@RestController
+@RequestMapping("/user/token")
+public class UserLoginToken {
+
+    @PostMapping(value = "/login")
+    public ResultVO login(@RequestBody User user) {
+        //1、TODO 验证用户登录是否正确,并获取subject信息
+
+        //2、根据用户生成token
+        String token = TokenAccessUtil.createJWT(
+				//生成唯一id
+                UUID.randomUUID().toString(),
+                TokenConstant.ISSURE,
+                TokenAccessUtil.generateSubject(new Subject(user.getName(), 1, 1)),
+                TokenConstant.TOKEN_EXPIRE
+        );
+        //3、返回token
+        return new ResultVO(0, "成功", token);
+    }
+
+    @GetMapping(value = "/validation")
+    public ResultVO validate(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        TokenValidation validation = TokenAccessUtil.validateJWT(token);
+        if (validation.getCode() != 0) {
+            //验证失败
+            return new ResultVO(validation.getCode(), validation.getMessage(), null);
+        }
+        //验证成功，则应该将token重置，使其失效时间保证在此次操作之后expire时间后失效
+        String newToken = TokenAccessUtil.createJWT(
+                validation.getClaims().getId(),
+                validation.getClaims().getIssuer(),
+                validation.getClaims().getSubject(),
+                TokenConstant.TOKEN_EXPIRE
+        );
+        //将新的token返回
+        return new ResultVO(validation.getCode(), validation.getMessage(), newToken);
+    }
+}
+

@@ -523,7 +523,7 @@ public class ThreadTest {
 ```java
 /*
  · wait() / notify() / notifyAll() 都是 Object 类中的 本地、实例方法！
- 	- wait()			 ：public final void wait() throws InterruptedException（ 调用 wait(0); 实现 ）
+ 	- wait()			 ：public final void wait() throws InterruptedException（调用 wait(0); 实现）
  	- wait(long timeout) ：public final native void wait(long timeout) throws InterruptedException;
  	- notify()			 ：public final native void notify();
  	- notifyAll()		 ：public final native void notifyAll();
@@ -561,7 +561,7 @@ public class ThreadTest {
  	为什么 wait/notify 是 Object 中的实例方法，而不是 Thread 类中的？
  
  · 解答：
- 	由上述可知：等待通知机制 是依赖于 对象obj 的！线程之间要想依赖于 object 进行通信，那就需要利用同步机制，获取对象锁！
+ 	由上述可知：等待通知机制 依赖于 对象obj！线程之间要想依赖于 object 进行通信，那就需要利用同步机制，获取对象锁！
  	获取对象锁 其本质就是 对象监视器（ObjectMonitor）的获取！这个获取过程是排他的，也就是同一个时刻只能有一个线程获取到由 synchronized 所保护对象的监视器！
 	这就是为什么，wait、notify 需要和 synchronized 联合使用，同时也正是因为需要对象的支持，所以 wait、notify、notifyAll 方法都是 Object 类中的实例方法，并由对象调用！若不在同步块内使用，将抛出异常：IllegalMonitorStateException！
 */

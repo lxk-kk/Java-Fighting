@@ -1,0 +1,90 @@
+【Token身份认证】
+
+简介：使用基于Token的身份验证方法，在服务端不需要储存用户的登录记录。
+使用流程：
+	1、客户端使用用户名、密码请求登录
+	2、服务端收到请求，去验证用户名、密码请求登录
+	3、验证成功后，服务端会签发一个Token，在把这个Token发送给客户端
+	4、客户端收到Token以后可以把他储存起来，比如放在cookie或者LocalStorage或者SessionStorage中
+		Cookie：可以跨域，也可以本地存储，有生命周期，可以在浏览器关闭的时候自动删除 或者 保存一定的时长后自动删除
+		LocalStorage：这是浏览器提供的一个本地储存空间，一个服务端对应一个本地储存空间，它和域和服务端是无关的，只和本地相关
+		SessionStorage：会话存储空间，一个客户端或者是一个浏览器对应一个储存空间，一旦浏览器关闭，该储存空间就会自动回收
+	5、客户端每次向服务端请求资源的时候需要携带服务端签发的Token
+	6、服务端收到请求，然后去验证客户端请求里面带着的Token（是否有效，有效期等），如果验证成功，就向客户端返回请求的数据。
+
+优势：
+	1、无状态、可扩展：
+		在客户端储存的Token是无状态的，即不需要记录用户状态变更，并且能够被扩展。基于这种无状态和不储存session信息，负载均衡器能够将用户信息从一个服务传到其他服务器上。
+	
+	2、安全性：
+		请求中发送token而不再是发送cookie，能够防止SCRF（跨站请求伪造：大部分都是伪造的cookie），一般将token放在请求头中发送，在请求头中可以利用请求头的加密信息，或者是请求头的唯一性信息，来保证请求不变，进而避免跨站伪造。
+		即使在客户端使用cookie储存token，cookie也仅仅是一个储存机制，而不是用户认证。token不用来认证，只用来标记，标记是否在有效期。
+		不将信息储存在session中，让我们少了对session操作。
+		 
+缺点：编码的问题
+
+【Token实现----JWT机制（JSON Web Token）】
+	通过json数据做一个web网络中的令牌机制。
+	JWT是一种紧凑且自包含的，用于在多方传递json对象的技术。传递的数据可以使用数字签名增加其安全性。可以使用HMAC加密算法（对称加密）或者RSA公钥/私钥加密方式（非对称加密）。
+		紧凑：数据小，可以通过URL、POST参数，请求头发送。且数据小代表着传输速度快。
+		自包含：使用payload数据块记录用户必要且不隐私的数据，可以有效的减少数据库访问次数，提高代码性能。
+	JWT一般用于处理用户身份验证或者数据信息交换。
+		用户身份验证：一旦用户登录，每个后续请求都将包含JWT，允许用户访问该令牌允许的路由、服务和资源。
+			单点登录是目前使用广泛的一种jwt功能，因为他的开销小，并且能够轻松的跨不同域使用。
+		数据信息交换：JWT是一种非常方便的多方传递数据的载体，因为其可以使用数据签名来保证数据的有效性和安全性。
+	
+	1、jwt数据结构
+		A.B.C：由字符"."来划分三部分数据。
+			A：header头部信息（传递token时，会被加密）
+			B：payload：有效荷载，一般用于记录用户的非隐私且有效的数据。可以尽量的较少服务端访问数据库的操作。（传递token时，会被加密）
+			C：Signature签名：header+payload通过加密后，再次加密的密文。
+		（1）header：
+			数据结构：{"alg":"加密算法名称","typ":"JWT"}
+			alg：是加密算法定义内容：HMAC SHA256 或 RSA
+			typ：表示token的类型，这里固定为JWT
+		（2）payload
+			在payload数据中一般用于记录实体（通常为用户信息）或其他数据。
+			主要分为三个部分：已注册信息（registered claim），公开数据（public claim），私有数据（private claims）
+				-- 已注册信息（registered claim）：这些claim是JWT预先定义的，在JWT中并不会强制使用它们，而是推荐使用。
+					payload中常用信息有：iss（签发者）, exp（过期时间戳）, sub（面向的用户）, aud（接收方/受众）, iat（签发时间）
+				-- 公开数据（public claim）、私有数据（private claims）：一般都会在JWT中增加自定义字段
+					注意：避免和已注册信息冲突。
+					
+			这部分可以考虑不传递数据，数据可以为空，但是JWT中A.B.C的结构必须要保证
+			
+			注意：
+				-即使JWT有签名加密机制，但是payload内容都是明文记录，除非记录的是加密数据，否则不排除泄露隐私数据的可能。不推荐在payload中记录任何敏感数据。
+				-除了公开数据和私有数据，其余json中的key都是约定好的
+		
+		（3）Signature：
+				签名信息：这是一个由开发者提供的信息。是服务器验证传递的数据是否有效安全的标准。
+				在生成JWT最终数据之前，先使用header中定义的加密算法，将header和payload进行加密，并使用点"."将两者连接，再使用相同的加密算法，对加密后的数据和签名信息进行加密，最终得到结果。
+	2、JWT执行流程
+		借助客户端辅助支持实现。
+		1、Browser:post/user/login with username and password-->Server
+		2、Server:create a JWT with a secret(Token) + return the JWT-->Browser
+		3、Browser:send the JWT on the Authorization Header(建议使用请求头中的Authorization部分携带token)  -->Server
+		4、Server:check JWT sigurature and get user information from JWT and send response -->Server
+	
+	3、代码实现：
+		（1）依赖：
+			java-jwt（核心依赖）
+			jjwt（java开发jwt的依赖jar包）：java版的jwt辅助开发模块，对jwt做了封装，类似于扩展包，可以简化jwt的开发
+		（2）代码
+	
+	4、注意事项：
+		使用JWT实现单点登录时，需要注意token失效性，token是保存在客户端的令牌数据，如果永久有效，则由被劫持的可能性。
+		所以设计token的时候，可以考虑一次性有效或者一段时间内有效。
+		如果设置了有效时长，则需要考虑是否需要刷新token的有效期问题。
+	5、token保存位置：
+		使用JWT技术生成的token，客户端保存的时候可以考虑cookie或者localStorage。
+		cookie保存方式：可以实现跨域。但是cookie是会被劫持的。
+		localStorage保存：是域私有的本地储存，无法实现跨域。它是webStorage下的一个分支
+	6、webstorage：
+		webstorage可保存的数据容量为5M，且只能保存字符串数据。
+		webstorage：分为localstorage和sessionStorage
+		localStorage：生命周期是永久的，关闭页面或者浏览器之后，localstorage中的数据也不会消失。localstorage除非主动删除数据，否则数据永远不会消失。如：window.xxx.localStorage=""：清空
+		sessionStorage：是会话相关的本地储存的那元，生命周期是在仅在当前会话下有效。
+			sessionStorage引入了一个浏览器窗口的概念，sessionStorage是在同源的窗口中始终存在的数据。只要这个浏览器窗口没有关闭，即使刷新页面或者是进入同源另一个页面，数据依然存在。
+			但是sessionStorage在关闭了浏览器窗口后就会被销毁。同时独立的打开同一窗口的同一个页面，sessionStorage也是不一样的
+		

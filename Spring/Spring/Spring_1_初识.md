@@ -1,3 +1,5 @@
+
+
 ### Spring
 
 #### Spring 概念
@@ -174,7 +176,7 @@
 
 + 在加载上下文时（初始化容器时），通过构造方法 注入 Bean 的属性值 或者 依赖的对象，它保证了 Bean 对象在实例之后就可以使用！
 
-+ 构造器注入在 \<constructor-arg>  元素中声明属性（\<constructor-arg> 中没有 name 属性）
++ 构造器注入在 **\<constructor-arg>  元素**中声明属性（\<constructor-arg> 中没有 name 属性）
 
 + 示例：
 
@@ -202,7 +204,7 @@
 
   容器会调用 类的 无参构造器 或者 无参static工厂方法 实例化 Bean，再调用该 bean 的setter 方法，实现注入！
 
-+ 在 \<property> 元素中，使用 name 属性指定 Bean 的属性名称，使用 value属性 或者 \<value>子元素 指定属性的值！
++ 在 **\<property> 元素**中，使用 name 属性指定 Bean 的属性名称，使用 value属性 或者 \<value>子元素 指定属性的值！
 
 + 示例：
 
@@ -623,6 +625,8 @@
       · singleton 采用了 单例模式，可以设定 Bean 加载的时间！
       	lazy-init = true ，启动懒加载：在第一次从容器中获取 Bean 时加载 Bean
       	lazy-init = false，立即加载：在容器启动时就加载 Bean
+      
+      · bean 随 JVM 的消亡而消亡 ？
      ```
 
   2. **prototype**（原型）
@@ -632,6 +636,8 @@
       	即：每次调用 getBean() 从容器中获取 Bean ，或者将该 Bean 注入到 另一个 Bean 中时，都会新创建一个 Bean！
       
       · prototype 作用域的 Bean，并不会在 容器启动时自动创建，而是在该 Bean 被第一次访问时被创建！
+      
+      · 线程每次访问都会创建一个 bean，因此我猜 bean 随着线程执行完毕而消亡 ？
      ```
 
   3. **request**
@@ -639,6 +645,8 @@
      ```
       · 每个 HTTP 请求到来时，都会创建一个新的 Bean，该 Bean 仅仅在当前 HTTP request 中有效！
       	request作用域 仅适用于 WebApplicationContext 环境！（Web 程序）
+      	
+      · bean 随着当前 request 的结束而消亡 ？
      ```
 
   4. **session**
@@ -646,6 +654,8 @@
      ```
       · 每次建立一个 session 都会创建一个 Bean 实例，该 Bean 仅仅在当前 session 中有效！
       	session作用域 仅适用于 WebApplicationContext 环境！（Web 程序）
+      	
+      · bean 随着当前 session 的结束而消亡 ？
      ```
 
   5. **global-session**
@@ -656,6 +666,8 @@
      	
       · 实际上：global-session 作用域只在 partlet web 应用程序中有意义！
       	partlet 中定义了 全局session 的概念，它被所有构成某个 portlet web 应用程序的各种不同的 portlet 共享！
+      
+      · bean 随着当前的 全局session 的结束而消亡 ？ 
      ```
 
 + *单例（singleton）Bean 线程安全问题*
@@ -679,7 +691,7 @@
 
   *BeanFactory 是Spring中最顶层的接口，包含了各种 Bean 的定义，用于读取Bean配置文件、管理 Bean 的加载 以及 实例化、控制 Bean 的生命周期、维护 Bean 之间的依赖关系等！*
 
-+ **BeanFactory 次啊用延迟加载的形式注入 Bean**
++ **BeanFactory 采用延迟加载的形式注入 Bean**
 
   *即：*
 
@@ -710,9 +722,21 @@
   *ApplicationContext 是 BeanFactory 的派生，拥有 BeanFactory 所具有的所有功能，除此之外还提供了更完整的框架功能：*
 
   1. 继承了 MessageSource ，支持国际化
+
   2. 提供 统一的资源文件访问方式
+
+     ```
+      1. FileSystemXml
+      2. ClassPathXml
+      3. WebXml
+      
+      还是说 Resource ？
+     ```
+
   3. 提供 在 Listener 中注册 Bean 的事件（向注册为 监听器的 bean 发布事件）
+
   4. 提供 同时加载多个配置文件 的功能！
+
   5. 载入多个（有继承关系）上下文，使得每一个上下文都专注于 一个特定的层次，例如：应用的 Web 层
 
 + ApplicationContext 的**三种实现方式**：
@@ -1094,8 +1118,4 @@
 #### 自动配置
 
 + @EnableAutoConfiguration、@Configuration、@ConditionalOnClass 是自动配置的核心，实现了 Spring的自动配置！
-
-项目限流、熔断、压测
-
-专栏文章：JVM[常用内存调优命令](https://www.nowcoder.com/tutorial/10014/501698583d9346ddbebf0235248f6a15)：（重点掌握）
 

@@ -1,0 +1,124 @@
+spring session共享：
+	spring session技术是spring提供的用于处理集群会话共享的解决方案。spring session技术是将session技术保存到第三方储存容器中，例如mysql、redis中
+	spring-session技术是解决同域名下多服务器集群session共享问题的，不能解决跨域session共享问题。
+使用：
+1、配置一个spring提供的filter，实现数据的拦截保存，并转换为spring-session需要的会话对象，必须提供一个数据库的表信息（由spring session提供）
+	web.xml中设置filter
+	//spring提供的filter，实现数据的拦截并转换为springsession需要的会话对象
+	<filter>
+		<filter-name>springSessionRepositoryFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegationFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSessionRepositoryFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>ERROR</dispatcher>
+	</filter-mapping>
+
+2、提供数据库表的信息：它由springsession的包提供，根据不同的数据库在spring-session-jdbc.jar/org.springframework/session/jdbc/*.sql下找不同的数据库文件，作为表格的创建
+	msyql有两张表：
+		spring-session表：保存客户端session对象的表格
+		spring-session-attributes表：保存客户端session中的attribute属性数据的表格
+		默认保存时长为30分钟
+	spring session框架是结合servlet中的HttpSession完成会话共享机制，在代码中是直接操作HttpSession对象的。
+	
+	application.xml配置数据库连接
+	<context:component-scan base-package="com.sxt.controller" />
+
+	<!-- 为SpringMVC配置注解驱动 -->
+	<mvc:annotation-driven />
+
+	<!-- 为Spring基础容器开启注解配置信息 -->
+	<context:annotation-config />
+	<!-- 
+		就是用于提供HttpSession数据持久化操作的Bean对象。
+		对象定义后，可以实现数据库相关操作配置，自动的实现HttpSession数据的持久化操作（CRUD）
+	 -->
+	<bean
+		class="org.springframework.session.jdbc.config.annotation.web.http.JdbcHttpSessionConfiguration" />
+
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="url" value="jdbc:mysql://localhost:3306/testspringsession?useUnicode=true&amp;characterEncoding=UTF8&amp;serveTimezone=GMT"></property>
+		<!--
+			上述配置数据库有几点需要注意：
+			1、需要使用unicode编码去建立连接
+			2、由于该连接是一个协议，"?"后面是协议的参数，多参数之间用and符连接，xml中的与需要使用转义字符表示，即"&amp;"，而不是"&"
+			3、字符集编码使用UTF8。注意：这里的"UTF8"中间不能写"-"，因为数据库的utf8编码名称中没有"UTF-8"
+			4、时区问题：低版本不需要使用serverTimezone=true，5.7就需要统一时区
+		 -->
+		
+		<property name="username" value="root"></property>
+		<property name="password" value="root"></property>
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+	</bean>
+
+	<!-- 事务管理器。为JdbcHttpSessionConfiguration提供的事务管理器。 -->
+	<bean
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<constructor-arg ref="dataSource" />
+	</bean>
+	
+3、spring session访问流程：
+	
+	（1）客户端请求问应用tomcat
+	（2）tomcat根据具体的应用名称，将请求分发到具体的应用中
+	（3）过滤器Filter：DelegatingFilterProxy。
+		工作原理：过滤所有的请求，控制HttpSession和数据库中的数据，实现统一。（如何实现：看第四步）
+	（4）jdbcHttpSessionConfiguration是具体用于实现HttpSession和数据库数据的统一的工具，实现增删改查功能的具体逻辑，可以通过配置的形式定义Session的有效期等。由于在DelegatingFilterProxy的bean对象中是通过类型（byType）获取configuration对象的，所以configuration对象不需要定义id或者name。
+		注意：不是根据名称、别名获取的，而是根据类型获取的。也就是说，在配置文件中只需要把JdbcHttpSessionConfigurationProxy的bean配置填写上，他就会自动获取configuration对象。该对象有若干干配置信息，可以自定义配置。
+	（5）经过controler和service之后即可访问数据库了。
+
+
+【SpringBoot+SpringSession+redis实现session共享】
+1、引入依赖
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-data-redis</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.session</groupId>
+		<artifactId>spring-session-data-redis</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.session</groupId>
+		<artifactId>spring-session-core</artifactId>
+	</dependency>
+2、添加启动spring session的注解：
+	@EnableRedisHttpSession
+3、配置redis，并配置使用redis缓存session
+spring:
+  redis:
+    host: ip地址
+    port: 6379
+    password: 123456
+  session:
+    store-type: redis
+	
+4、在登录的时候获取并设置session
+	@GetMapping("/login")
+    public void login(@RequestParam("name")String name, @RequestParam("password")String password,HttpServletRequest request,HttpServletResponse response){
+        log.info("【login  JSESSIONID】={}",request.getSession(true).getId());
+        HttpSession session =request.getSession();
+        String identity=name.concat("_").concat(password);
+        log.info("【用户登录】 身份为：{}",identity);
+        session.setAttribute("user_password",identity);
+    }
+5、在需要验证的时候通过request获取session
+	@GetMapping("/confirm")
+    public void confirm(HttpServletRequest request){
+        log.info("【confirm  JSESSIONID】={}",request.getSession().getId());
+        HttpSession session=request.getSession();
+        if(session==null || session.getAttribute("user_password")==null){
+            log.info("【用户验证】 session 丢失");
+        }
+        log.info("【用户验证】 身份为：{}",session.getAttribute("user_password"));
+    }
+	
+好叭：我测试了
+	我并没有再yml配置文件中配置spring.session.store-type=redis
+	也没有再启动类上添加注解：@EnableRedisHttpSession
+	
+	依旧是实现了session共享，session信息依旧是存放在了redis中！所以，我仅仅是添加了三个依赖+连了下redis就把问题解决了？
+	百思不得其解-----看源码，找答案！

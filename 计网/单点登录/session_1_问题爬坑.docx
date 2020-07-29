@@ -1,0 +1,148 @@
+【session问题---跳坑+爬坑】
+
+session基础点：
+	1、session是会话控制。session对象储存特定用户会话所需的属性或者配置信息。当用户在该应用程序的web页面之间跳转时，session对象便会在一直存在。
+	2、session对象在客户端向服务端发起请求时，由服务端创建。
+	3、会话状态仅在支持cookie的浏览器中保留。
+	【重点】
+		（1）在同一个浏览器下，session是唯一的。
+		（2）session由服务端创建，不同的服务端（ip、域名、端口任意不同）之间的session不相同，它是不共享session的。
+		（3）服务端在创建session对象的同时，会生成一个session的唯一标识，这就是JSessionID。所以不同的服务端之间的JSessionID不同。
+		（4）JSessionID作为session的唯一标识，以cookie的形式返回给客户端，而在服务端以内存的形式保存。
+	【问题】
+		（1）session覆盖：当在浏览器上同时访问两个或者多个服务端时，由于不同的服务端之间不共享session，并且浏览器只有一个session，所以会出现session覆盖的问题。
+			表现：轮流访问服务端A、B时，JsessoinID每次都是不一样的。
+				第一次进入浏览器访问serverA，A服务端中并没有session存在，则由A生成JSessionID_A，并将其以cookie的形式保存在
+				当切换到ServerB时，B服务端也是没有Session存在，就会由B生成JSessionID_B，以cookie的形式返回给客户端，这个时候JSessionID_B就会将JSessionID_A覆盖。
+				由此引发每次都是新的JSessionID，也就是每次都会生成新的session对象，旧对象的内容便被覆盖。
+		
+		（2）session不共享：正如上述，客户端访问不同的服务端时，session是不同的。也就是session在服务端之间是不能共享的，各自拥有自己独特的session。
+			表现：在分布式系统中，将业务拆分时，不同的业务单独作为一个服务，业务之间相互连接变成了一个系统。用户在该系统的不同业务之间跳转时，访问的便事不同的服务端。
+				由于session存放着用户的身份信息和权限信息，所以如果session不能共享，整个系统的功能便失去了意义。例如：系统可能会重复的提醒用户登录。
+				
+	【跳坑】
+		作为一名后端小白，时常也是要接触前端一些逻辑性的东西。我经常在前后端交互中穿梭！
+		这次为了测试session，我找了前端队友的代码，做了些修改，形成前后端分离的小demo
+		测试背景：前后端分离 与 axios+restful API交互
+		
+		坑1：使用前端使用axios，默认是不携带cookie的。
+		坑2：由于是前后端分离，那就必须要跨域的，但是cookie默认是不跨域的，需要在后端设置。
+		
+		解决：以上两个问题都好解决，博客一大堆，全是解决以上问题的！
+		步骤：
+			1、前端引入axios时，在main.js中做一个全局设置，设置允许携带cookie发起请求。
+				import axios from 'axios'	//导入axios
+				axios.defaults.withCredentials = true	//全局设置axios允许携带cookie进行访问
+				Vue.prototype.$axios = axios	//设置axios全局标量，之后就可以以this.$axios的形式访问了
+				
+				或者将axios允许携带cookie发起请求作为一个局部设置，只需要在需要携带cookie的请求中加上
+					xhrFields: {
+						withCredentials: true
+					}
+				例如：
+					this.$axios({
+						xhrFields: {
+							withCredentials: true
+						},
+						method: 'get',
+						url: 'http://localhost:8080/...',
+					}).then(resposnse=>{
+						console.log("验证")
+					})
+			2、后端协助：在配置跨域的同时配置允许cookie跨域访问
+				（1）springboot注解法：在启动类上添加如下注解：
+				@CrossOrigin(origins = "http://localhost:8082", maxAge = 3600,allowCredentials = "true")
+					注意：
+						allowCredentials="true"表示允许cookie跨域访问。
+						orgins属性的值为前端 ip+端口 ，表示允许该源的请求访问本服务端，由于配置了允许cookie跨域访问，所以这里千万不能将orgin设置为"*"（允许任意源访问）
+				
+				（2）自定义过滤器法：（原理如上）
+				
+				@Slf4j
+				@Configuration
+				@WebFilter(urlPatterns = "/*", filterName = "crossDomainFilter")
+				@Order(1)
+				public class CrossDomainFilter implements Filter {
+
+					@Override
+					public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+							throws IOException, ServletException {
+						HttpServletRequest request = (HttpServletRequest) servletRequest;
+						HttpServletResponse response = (HttpServletResponse) servletResponse;
+
+						log.info("【跨域过滤器】 CrossDomainFilter");
+						/*
+						 *  Access-Control-Allow-Origin 响应头指定了该响应的资源是否被允许与给定的origin共享。
+						 *  对于不需具备凭证（credentials）的请求，服务器会以“*”作为通配符，从而允许所有域都具有访问资源的权限。
+						 *  可以指定一个可以访问资源的URI。
+						 *
+						 *  CORS和缓存
+						 *  如果服务器未使用“*”，而是指定了一个域，那么为了向客户端表明服务器的返回会根据Origin请求头而有所不同，
+						 *  必须在Vary响应头中包含Origin。
+						 *  	例如：
+						 *  	Access-Control-Allow-Origin: https://developer.mozilla.org
+						 *  	Vary: Origin
+						 */
+						response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+
+						response.setHeader("Access-Control-Allow-Method", "*");
+
+						/*
+						 * The Access-Control-Max-Age 这个响应首部表示 preflight request（预检请求）的返回结果
+						 * （即 Access-Control-Allow-Methods 和Access-Control-Allow-Headers 提供的信息）
+						 *  可以被缓存多久
+						 */
+						response.setHeader("Access-Control-Max-Age", "3600");
+
+						response.setHeader("Access-Control-Allow-Headers", "Authorization,Origin, X-Requested-With, Content-Type, Accept,Access-Token");
+
+						response.setHeader("Access-Control-Expose-Headers", "checkTokenResult");
+						//设置可以暴露在外的响应头
+						response.setHeader("Access-Control-Expose-Headers", "message");
+
+
+						/*
+						 * 允许cookie跨域
+						 * 
+						 */
+						response.setHeader("Access-Control-Allow-Credentials", "true");
+
+						/*
+						 * no-cache：
+						 * 	在发布缓存副本之前，强制要求缓存把请求提交给原始服务器进行验证。
+						 */
+						response.setHeader("Cache-Control", "no-cache");
+
+						// 把请求传回过滤链
+						filterChain.doFilter(servletRequest, servletResponse);
+					}
+				}
+				
+			好了，以上问题大功告成了，你以为就真的结束了？
+		
+		坑3（我的大boss）：以上内容时绝大数网友解决的问题的办法，但是对我来说就不是了，身为一个后端小白，解决session问题的周期就耗在了这第三步！
+			我只能说，你要是向上面这么一步一步做下来，就已经可以实现前后端session访问了，那我恭喜你。
+			如果连续访问同一个服务端，sessionId还是不一样，那还是恭喜你，你估计找对人了！
+			
+			我想问一个问题：你使用了mock了没有？
+			
+			如果有，好的你离成功最后一步了！
+			
+			作妖的东西：mock.js
+				【mock将每次的请求的cookie都重新刷新了，导致后台每次获取的SessionID都不一样】
+sessionid是一个会话的key，浏览器第一次访问服务器会在服务器端生成一个session，有一个sessionid和它对应。tomcat生成的sessionid叫做jsessionid。 
+　　session在访问tomcat服务器HttpServletRequest的getSession(true)的时候创建，tomcat的ManagerBase类提供创建sessionid的方法：随机数+时间+jvmid。 
+　　存储在服务器的内存中，tomcat的StandardManager类将session存储在内存中，也可以持久化到file，数据库，memcache，redis等。客户端只保存sessionid到cookie中，而不会保存session，session销毁只能通过invalidate或超时，关掉浏览器并不会关闭session。
+
+　　那么Session在何时创建呢？当然还是在服务器端程序运行的过程中创建的，不同语言实现的应用程序有不同创建Session的方法，而在Java中是通过调用HttpServletRequest的getSession方法（使用true作为参数）创建的。【４】在创建了Session的同时，服务器会为该Session生成唯一的Session id，而这个Session id在随后的请求中会被用来重新获得已经创建的Session；在Session被创建之后，就可以调用Session相关的方法往Session中增加内容了，而这些内容只会保存在服务器中，发到客户端的只有Session id；当客户端再次发送请求的时候，会将这个Session id带上，服务器接受到请求之后就会依据Session id找到相应的Session，从而再次使用之。
+
+　　创建：sessionid第一次产生是在直到某server端程序调用 HttpServletRequest.getSession(true)这样的语句时才被创建。 
+　　删除：超时；程序调用HttpSession.invalidate()；程序关闭。 
+　　session存放在哪里：服务器端的内存中。【5】不过session可以通过特殊的方式做持久化管理（memcache，redis）。 
+　　session的id是从哪里来的，sessionID是如何使用的：当客户端第一次请求session对象时候，服务器会为客户端创建一个session，并将通过特殊算法算出一个session的ID，用来标识该session对象。 
+　　session会因为浏览器的关闭而删除吗？不会，session只会通过上面提到的方式去关闭
+			
+			当看到这句话的时候，我百感交加，我都快哭了，花了我整整一两天的时间！
+			于是，我立刻将require(mock.js)以及页面中import mock的地方都注释了，注意看你有没有再main.js中引入了mock！好的，测试，发送请求，我成功了！
+			
+太罗嗦了，留下了没有技术的泪水！	

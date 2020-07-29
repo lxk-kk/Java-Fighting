@@ -29,7 +29,25 @@
   delete from <表> where <查询条件>
   truncate table <表>	# 清空表
   # 注意：drop table table_name 用于删除表！是 DDL 指令！
+  
+  # 将表的碎片优化！
+  optimize table <表>
   ```
+
+  **optimize table**
+
+  ```mysql
+  # 这里mysql给的提示是：
+  Note>> Table does not support optimize, doing recreate + analyze instead 
+  Status>> OK
+  # 也就是说 optimize table 对于innodb来说，无法作为a single operation，实际的操作是：
+  ALTER TABLE <表> ENGINE=InnoDB;
+  ANALYZE TABLE <表>;
+  
+  # MySQL5.7已经推荐对于InnoDB的table使用 alter table table_name engine=innodb;语句的方式来进行表碎片优化。
+  ```
+
+  
 
 + DCL：数据库控制语言
 
@@ -156,7 +174,7 @@
     select <字段列表> from <表> order by col_1 ASC,col_2 DESC;
     ```
 
-+ order by 永远是 最后的一项参数！
++ **order by 永远是 最后的一项参数！**
 
 ##### 分组 查询
 
@@ -182,13 +200,13 @@
   # count(*) total 为 count(*) 列起别名，也可以使用 as：count(*) as total
   ```
 
-+ 分组过滤：having
++ **分组过滤：having**
 
-  where 用于过滤行，而 having 用于过滤 分组：group by 只能和 having 搭配，having 也只能和 group by 搭配！
+  *where 用于过滤行，而 having 用于过滤 分组：group by 只能和 having 搭配，having 也只能和 group by 搭配！*
 
   如果在分组之前需要过滤某些行，则应该在 group by 之前使用 where 过滤！分组之后，只能使用 having 过滤！
 
-  所以：group by 总是在 where 之后，在 order by 之前！
+  所以：**group by 总是在 where 之后，在 order by 之前！**
 
   ```mysql
   # 按照 col 分组，分组之前过滤 id<=5 的行；
@@ -259,7 +277,7 @@
   # 如上：使用 on 时，table_1.id 和 table_2.id 都会显示（两列结果相同），而使用 using ，则只会显示一个 id 列！
   ```
 
-+ 表连接可以代替子查询，并且一般比子查询的效率更好（且不谈子查询的底层原理，子查询都会建立临时表，用完之后删除临时表，浪费时间！）
++ **表连接可以代替子查询，并且一般比子查询的效率更好**（且不谈子查询的底层原理，子查询都会建立临时表，用完之后删除临时表，浪费时间！）
 
 + 可以用 AS 关键字为 列、计算字段、表 取别名，这是为了简化 sql 语句 以及 连接相同表！
 
@@ -367,7 +385,7 @@
 
 #### 视图
 
-+ Mysql 的 视图是一个 基于 基表 的虚拟表，不存放任何数据。它和表处于同一个命名空间，具有与普通表相同的 DML 操作！
++ Mysql 的 视图是一个 基于 **基表** 的虚拟表，**不存放任何数据**。它和表处于同一个命名空间，具有与普通表相同的 DML 操作！
 
 + 视图定义
 
@@ -403,7 +421,7 @@
 
 + 视图更新
 
-  视图时基于 基表的虚拟表，对它的所有操作都会映射到实际的表中！所以，也能对视图进行更新，其本质就是 通过视图的定义 来更新实际的表！
+  视图时基于 基表的虚拟表，**对它的所有操作都会映射到实际的表中**！所以，也**能对视图进行更新，其本质就是 通过视图的定义 来更新实际的表**！
 
   视图定义中的 with check option 属性会在更新视图时检查更新操作是否合法，不合法时会报错！
 
@@ -432,13 +450,13 @@
   1. 视图被用作抽象装置，程序本身不需要关心基表的结构，只需要按照视图定义来获取或更新数据即可，一定程度上，起到安全层的作用！
   2. 可以用来简化复杂的 SQL 操作，比如：复杂的 表连接！
   3. 使用视图时，相当于只使用了实际表的部分数据！
-  4. 通过只给用户访问视图的权限，能保证数据的安全性！
+  4. **通过只给用户访问视图的权限，能保证数据的安全性！**
 
 + 注意：
 
-  1. 视图是虚拟的表，不包含数据，也就不可能有索引！
+  1. **视图是虚拟的表，不包含数据，也就不可能有索引**！
   2. mysql 不支持在 视图上建立 触发器！
-  3. 删除视图时不能使用 drop table 应该使用 drop view
+  3. **删除视图时不能使用 drop table 应该使用 drop view**
 
 #### 存储过程
 

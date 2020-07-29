@@ -1,0 +1,57 @@
+【Restful】
+	1、它是rest风格的一种web服务；rest式的web服务是一种RAO（面向资源的架构）
+
+	2、普通架构：将controller资源细分为增删改查，通过访问路径的不同对细分资源访问。
+		每次请求的接口或者地址都在做描述：例如查询使用了/search，新增使用了/save
+			如：http://localhost:8080/user/search/1		GET：根据id查询用户数据
+				http://localhost:8080/user/save			POST：新增用户
+	3、restful架构：面向资源：将controller层视为一个资源整体，使用统一的url进行访问，通过请求方式的不同对这个资源进行不同的请求，没有必要将资源细分
+		（1）使用get请求就表示查询，使用post就表示新增，意图明显，没有必要做描述。
+			如：http://localhost:8080/user/1			GET：根据id查询用户数据
+				http://localhost:8080/user				POST：新增用户
+		
+		（2）restful操作方式：POST、GET、DELETE、PUT（PATCH、HEAD）
+			最常使用的就是POST和GET，DELETE、PUT不常用
+				DELETE：传递参数只能在请求头中路径传递，请求体不能传参
+				PUT：请求体可以传参，但是默认来说，服务端不会处理PUT请求中请求体body的数据，比如说springmvc，需要加上其他的处理逻辑，否则就只能通过请求头路径传参。
+			由于DELETE、PUT的特性，在web开发中使用的很少，其他的请求方式使用的就更少了。
+		（3）处理PUT请求体：
+			* 配置Filter：HttpPutFormContentFilter：专门用于粗粒PUT请求中请求体传递的请求参数
+			<filter>
+				<filter-name>httpPutFormContentFilter</filter-name>
+				<filter-class>org.springframework.web.filter.HttpPutFormContentFilter</filter-class>
+			</filter>
+			<filter-mapping>
+				<filter-name>httpPutFormContentFilter</filter-name>
+				<!--处理所有路径下的url请求-->
+				<url-pattern>/*</url-pattern>
+			</filter-mapping>
+	
+	4、http协议：
+
+	编码		HTTP方法				响应体内容			描述
+
+	200			get/put					资源数据		操作成功
+	201			post					源数据			创建成功
+	202			post/put/delete			无				请求已接受
+	204			delete/put				无				请求已处理，无返回数据
+	301			get	 					link 链接		资源已被移除
+	303			get						link 链接		重定向
+	304			get						无				资源没有被修改
+	400			get/post/put/delete		错误提示消息	参数错误（缺少，格式错误等）
+	401			get/post/put/delete		错误提示消息	未授权
+	403			get/post/put/delete		错误提示消息	访问受限、授权过期
+	404			get/post/put/delete		错误提示消息	资源、服务未找到
+	405			get/post/put/delete		错误提示消息	不允许的HTTP方法
+	409			get/post/put/delete		错误提示消息	资源冲突或资源被锁定
+	415			get/post/put/delete		错误提示消息	不支持的数据类型或媒体类型
+	429			get/post/put/delete		错误提示消息	请求过多被限制
+	500			get/post/put/delete		错误提示消息	系统错误
+	501			get/post/put/delete		错误提示消息	接口未实现
+	
+	http协议规范：
+		get：查询
+		put：修改
+		delete：删除
+		post在http协议中定义的就是新增操作，是不做响应体的，只做源数据响应
+			源数据：服务端返回的基础源数据，或者说响应体的基础内容

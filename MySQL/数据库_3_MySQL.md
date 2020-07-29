@@ -109,7 +109,7 @@
 
   与 传统的 LRU 算法不同，InnoDB 对 LRU 做了优化！
 
-+ InnoDB 为 LRU List 维护了一个 中点（midpoint），每次被访问的页都会被插入到 midpoin 位置，这个算法被称为 中点插入策略。
++ InnoDB 为 LRU List 维护了一个 中点（midpoint），每次被访问的页都会被插入到 midpoin 位置，这个算法被称为 **中点插入策略**。
 
   InnoDB 存储引擎将 midpoint 之后的列表称为 old 列表，之前的列表称为 new 列表，可以简单的认为 new 列表中的数据都是活跃的热点数据！
 
@@ -387,7 +387,30 @@
 
 2. 在索引字段上出现 *隐式类型转换*
 
+   **字符串类型会转换为 整型！**
+
    例如：索引字段为 varchar 类型 ，但参数为 int 类型
+
+   ```mysql
+   select 1=1; # 结果为 1 ：因为 1==1
+   select 1=0; # 结果为 0 ：因为 1!=0
+   
+   alter table test_table add index `idx_int_a`(a); # 在 int 类型的 a字段 上加索引！
+   alter table test_table add index `idx_varhcar_b`(b) # 在 varchar 类型的字段 b 上加索引！
+   
+   select ... where a=1; 		# 走
+   select ... where a='n';		# 走：将 'n' 转换为整型 0（字符串都会转换为 0）
+   
+   select ... where b=1;		# 不走索引：将字段 b 转换为整型 0
+   select ... where b='n';		# 走
+   
+   # 由于 `idx_varchar_b` 是根据 字符串b 建立的 B+树，树中是按照 字符串 排序的（字符集排序）
+   # 因此树中可能存在  'a'>'b'
+   # 而，字段 b 需要转换为整型，如果 b 走索引的话，那么，b+树中都需要进行转换！
+   # 此时，转换后 字段b 的值发生变化，那么意味着，整棵 b+树 的排序规则被打乱！
+   # （转换之后，所有字符串都转换为 0，因此，'a'='b'）
+   # 所以，不会走索引！
+   ```
 
 3. 使用 *复合索引（组合索引）时，不遵循最左前缀规则*！
 

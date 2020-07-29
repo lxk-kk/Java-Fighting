@@ -77,7 +77,7 @@ LinkedHashMap 中的 removeEldestEntry() 方法会被 put() 以及 putAll() 调�
 */
 ```
 
-##### 可以把 List<String> 传递给一个  接受 List<Object> 参数的方法吗？
+##### 可以把 List\<String> 传递给一个  接受 List\<Object> 参数的方法吗？
 
 ```java
 /*
@@ -144,11 +144,11 @@ List<?> 表示 List 是未知的，但是其元素是某一个特定类型的！
 */
 ```
 
-##### < String > 与 raw type 的区别
+##### \<String> 与 raw type 的区别
 
 ```java
 /*
-< String >
+<String>
 带参数类型是安全的，其类型安全由编译器保证！
 所以对于List<String> ：不能将 除了String类型以外的其他类型元素加入该 list 中，编译器会报错。正因为此，从该 list 中获取元素时，直接就是 String 类型的，不需要 强制类型转换。 
 

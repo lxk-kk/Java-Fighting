@@ -1,0 +1,51 @@
+【HTTPS】
+HTTPS：HTTP+Security
+Http是不安全的，在互联网中http是明文传输，在互联网中的每一层进行传输时，都可能被截取，获取传输的所有数据：这完全就是在裸奔
+加密：私钥、公钥
+公钥：所有人可见
+私钥：服务端自己私有
+服务端生成公钥和私钥，并在互联网中公布公钥、自己私有私钥，当客户端发起请求时，通过公钥加密，这段加密内容只有服务端的私钥才能解密，所有变成了安全的数据传输。
+公钥私钥主要在tcp握手时候传输http请求和响应时需要用于加密的字符串，由于是通过公钥和私钥的形式进行传输，所以他人拿不到这个字符串，在后期http请求和响应时数据通过该字符串进行加密，他人变无法解密http数据内容。
+【HTTPS握手过程：见图】
+1、客户端生成一个随机数（随机数A），并带上支持的加密套件（因为加密有许多方法），传输到服务端。
+2、服务端收到该随机数并保存，同时服务端也生成一个随机数（随机数B）与证书（公钥），响应客户端。
+3、客户端收到服务端发送的随机数后，将其保存，并通过服务端传送的公钥生成一个秘钥（预主秘钥——随机数C）。（所以总共有三个随机数A、B、C）
+	此次生成的随机数，通过公钥加密后，传送到服务端。此传送过程他人无法解析。因为使用的是公钥加密，只有服务端的私钥才能解密。
+4、服务端收到加密的数据后，通过私钥解密，拿到加密的内容：随机字符串（预主秘钥）。
+5、届时服务端和客户端同时拥有了三个随机字符串，于是服务端会从加密套件中选一个客户端可支持的加密算法，通过该算法将三个随机字符串加密成主秘钥，同时客户端也采用相同的算法生成主秘钥。
+	由于最后一个随机字符串只有客户端和服务端知道，所以该主秘钥只有彼此知晓，他人无法破解。
+6、后面的http请求和响应就都通过该主秘钥进行加密和解密，他人无法解密。
+【nginx部署https服务】
+1、首先需要生成public key和private key
+	在git bash命令行，进入某个文件，并输入如下命令，并一路回车生成默认的：
+	openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout localhost-privkey.pem -out localhost-cret.pem
+	因为bash上默认安装了openssl命令（windows没有）
+	该命令即生成公钥localhost-cret.pem和私钥localhost-privkey.pem
+	由于该公钥和私钥是本地生成，并不是权威机构认证的，所以浏览器会认为这是不安全的
+2、在nginx中配置
+server {
+	listen			443;	#https的端口为443
+	server_name		test.com;
+	
+	ssl on;			#即http加密的算法是ssl
+	ssl_cretificate_key .../localhost-privkey.pem;	#指定私钥证书（使用绝对路劲访问即可）
+	ssl_cretificate .../localhost-cret.pem;			#指定公钥证书（使用绝对路径访问即可）
+	
+	location / {
+		...
+	}
+}
+这样配置，nginx就支持了https，在浏览器中输入https://test.com即可访问了
+要想通过http就访问到https则需要如下配置
+再配置一个80的server：
+server {
+	listen			80 default_server;
+	listen			[::]:80 default_server;		#使用ip访问
+	server_name		test.com;
+	return 302 https://$server_name$request_uri;
+	#$server_name和$request_uri是nginx的默认参数。
+	#$server_name：即为test.com，而$request_uri：是具体的请求uri
+}
+经过上述配置，通过http访问的时候就自动跳转到https了
+
+	
