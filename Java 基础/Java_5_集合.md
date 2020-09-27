@@ -35,13 +35,13 @@
   ```java
   public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable {
       static final long serialVersionUID = -5024744406713321676L;
-  
+
       // 基于 hashmap 实现 [ 集 ]
       private transient HashMap<E,Object> map;
-  
+
       // 当作 hashmap 中的 假value
       private static final Object PRESENT = new Object();
-  
+
       // 构造空集：底层 hashmap 实例默认容量未 16，填装因子为 0.75
       public HashSet() {
           map = new HashMap<>();
@@ -63,10 +63,10 @@
   public class TreeSet<E> extends AbstractSet<E> implements NavigableSet<E>, Cloneable, java.io.Serializable{
       // 基于 navigable map 实现 [ 有序集 ]
       private transient NavigableMap<E,Object> m;
-  
+
       // 当作 navigable map 中的 假value
       private static final Object PRESENT = new Object();
-  
+
       // Constructs a set backed by the specified navigable map.
       TreeSet(NavigableMap<E,Object> m) {
           this.m = m;
@@ -98,9 +98,9 @@
   ```java
   // LinkedHashSet 调用的是 HashSet 的构造方法，并与 HashSet 共用所有操作！
   public class LinkedHashSet<E> extends HashSet<E> implements Set<E>, Cloneable, java.io.Serializable {
-  
+
       private static final long serialVersionUID = -2851667679971038690L;
-  
+
       public LinkedHashSet(int initialCapacity, float loadFactor) {
           super(initialCapacity, loadFactor, true);
       }
@@ -116,17 +116,17 @@
           addAll(c);
       }
   }
-  
+
   // HashSet 专门为 LinkedHashSet 提供的构造器！
   public class HashSet<E> extends AbstractSet<E> implements Set<E>, Cloneable, java.io.Serializable{
       static final long serialVersionUID = -5024744406713321676L;
-  
+
       private transient HashMap<E,Object> map;
-  
+
       // Dummy value to associate with an Object in the backing Map
       private static final Object PRESENT = new Object();
       // ... ...
-  
+
       // 该构造器为 包私有，只能呗 LinkedHashSet 使用！
       HashSet(int initialCapacity, float loadFactor, boolean dummy) {
           // LinkedHashMap 继承于 HashMap
@@ -167,7 +167,6 @@
   修改后堆化：O(nlogn)
   ```
 
-  
 
 #### Map
 
@@ -222,21 +221,21 @@
       Iterator<T> iterator();
       // ... ...
   }
-  
+
   // Collection 容器基础接口：继承了 Iterable 接口
   public interface Collection<E> extends Iterable<E> {
       // ... ...
   }
-  
+
   // Iterator 接口：遍历容器的规范接口
   public interface Iterator<E> {
       boolean hasNext();
       E next();
-  
+
       default void remove() {
           throw new UnsupportedOperationException("remove");
       }
-  
+
       default void forEachRemaining(Consumer<? super E> action) {
           Objects.requireNonNull(action);
           while (hasNext())
@@ -279,14 +278,14 @@
       // ArrayList 是工具类 Arrays 中自定义的类：相当于 适配器类！
       return new ArrayList<>(a);
   }
-  
+
   // 适配器类
   private static class ArrayList<E> extends AbstractList<E>{
-  
+
       // 适配者：将 泛型数组 转换为 ArrayList
       // 使用 final 修饰，表示该对象不可指向其他引用！
       private final E[] a;
-  
+
       // 泛型数组 是 用户提供的，即：用户提供 适配者
       ArrayList(E[] array) {
           // 保证数组构造的数组不为 null，否则，抛出 NullPointException 异常
@@ -313,10 +312,10 @@
   // 方式 1
   Integer[] arr={1,2,3,4};
   List list=Arrays.asList(arr);
-  
+
   // 方式 2
   List list=Arrays.asList(1,2,3,4);
-  
+
   // 错误方式：不能使用 基本类型！应该使用 包装类！
   int[] arr={1,2,3,4}
   List list=Arrays.asList(arr);
@@ -366,11 +365,11 @@
   }
   // --------------------------------------------------------------------------
   // 当确定扩容的容量后，ArrayList 调用 Arrays.copyOf()方法将数据从原数组中拷贝到新的数组中，该方法底层采用System.arraycopy()方法进行进行数组的深拷贝！
-  
+
   // --------------------------------------------------------------------------
   // ArrayList 线程不安全，与之对应的是 Vector 是线程安全的，其内部使用 synchorized 保证单个修改操作的原子性！
   ```
-  
+
 + 缩容
 
   1. trimToSize() 方法：对外提供缩容接口！
@@ -384,10 +383,10 @@
      ```java
      public E remove(int index) {
          Objects.checkIndex(index, size);
-     
+
          modCount++;
          E oldValue = elementData(index);
-     
+
          int numMoved = size - index - 1;
          if (numMoved > 0){
              // 使用 System.arraycopy 方法，将结点之后的数据，都往前移动一位
@@ -396,7 +395,7 @@
          // 至此，数组最后一位就是多余的！
          // ArrayList 将其置空，帮助 GC 回收，同时将数组大小 -1 ！
          elementData[--size] = null; 
-     
+
          return oldValue;
      }
      ```
@@ -505,7 +504,7 @@ jdk1.8 开始：HashMap内部的 Hash 表=数组+链表/红黑树
    · equals 和 hashCode 方法都是 Object 提供的方法！
   	equals ：比较两个 对象的引用！
   	hashCode ：默认为该对象的存储地址！
-  
+
    · 如果重写了 equals 方法，那么 equals 判断相等的两个 对象，可能并不是同一个对象，因此，导致 equals 和原始的 hashCode 的语义不统一！
   ```
 
@@ -523,9 +522,19 @@ jdk1.8 开始：HashMap内部的 Hash 表=数组+链表/红黑树
 
     ```
     为保证同一个桶中的元素都不相等，则在插入元素的时候，需要利用 equals 方法将待存入的元素与桶内的元素相比较，若 equals 方法结果相等，则表示桶内的元素存在与待插入的元素相等！
-    
+
     equals 方法保证了 同一个桶中的 元素 不相等，hashcode 保证了相等的元素一定会被 hash 到同一个桶中！
     ```
+
++ 注意：
+
+  1. 对象相等则hashCode一定相等；
+
+  2. hashCode相等对象未必相等
+
+     hashCode 是所有 java 对象的固有方法，如果不重载的话， 返回的实际上是该对象在 jvm 的堆上的内存地址，而不同对象的内存地址肯定不同，所以这个 hashCode 也就肯定不同了。 
+
+     如果重载了的话，由于采用的算法的问题，有可能导致两个不同对象的hashCode相同
 
 ###### 初始化
 
@@ -534,7 +543,7 @@ jdk1.8 开始：HashMap内部的 Hash 表=数组+链表/红黑树
   ```java
   // 默认的初始化容量：16，必须是 2的幂次
   static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
-  
+
   public HashMap() {
       // 初始化容量为16，填装因子 0.75，但是一个 空 map
       this.loadFactor = DEFAULT_LOAD_FACTOR;
@@ -552,7 +561,7 @@ jdk1.8 开始：HashMap内部的 Hash 表=数组+链表/红黑树
     ```
 
   + 使得元素 分布更加均匀！
-  
+
     ```
     2 的幂次，能够在 hash 时充分利用 元素哈希码的 后 n 位，以元素的 后n位 哈希码决定 hash 到的桶的位置！
     ```
@@ -569,7 +578,7 @@ jdk1.8 开始：HashMap内部的 Hash 表=数组+链表/红黑树
 + 缺点：
 
   ```
-在多线程环境下，头插法容易造成两个元素之间的循环引用，使得其他线程访问到这两个元素时，造成 死循环 。
+  在多线程环境下，头插法容易造成两个元素之间的循环引用，使得其他线程访问到这两个元素时，造成 死循环 。
   这是因为，扩容前后，同一个桶中的元素的相对位置是相反的，很可能在 扩容rehash 期间，由其他线程的影响导致，两个元素之间相互引用！
   ```
 
@@ -666,7 +675,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 
 +  **`capacity << 1`扩大两倍！**
 
-+ **何时扩容**：HashMap 中**元素的总个数** > **capacity*loadFactory**  ：扩容！
++  **何时扩容**：HashMap 中**元素的总个数** > **capacity*loadFactory**  ：扩容！
 
 ```java
 final Node<K, V>[] resize() {
@@ -809,4 +818,4 @@ final Node<K, V>[] resize() {
 
 ##### LinkedHashMap
 
-[LRU 算法详解](https://mp.weixin.qq.com/s/KgXE195lmX0fUrqLBMWbqA)
++ [LRU 算法详解](https://mp.weixin.qq.com/s/KgXE195lmX0fUrqLBMWbqA)

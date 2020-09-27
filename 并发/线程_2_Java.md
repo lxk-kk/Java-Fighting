@@ -58,10 +58,10 @@
      /*
       · obj.wait(long timeout) ：当前线程执行 obj.wait(timeout)，则释放锁，进入超时等待状态！
       	-> Runnable（Ready）：其他线程执行 obj.notity() / obj.notityAll() ，到期自动唤醒！
-     
+
       · thread.join(long timeout) ：当前线程执行 thread.join(timeout)，则当前线程进入超时等待！
       	-> Runnable（Ready）：thread线程执行完毕，到期自动唤醒！
-     
+
       · Thread.sleep(long timeout) ：调用 Thread.sleep(long timeout)，则 当前线程进入超时等待！
       	-> Runnable（Ready）：到期启动唤醒！
      */
@@ -654,7 +654,7 @@ main end
 */
 ```
 
-###### await() / signal() / signal()
+###### await() / signal() / signalAll()
 
 ```java
 /*
@@ -731,4 +731,3 @@ public class ThreadTest {
 + [Condition await / signal 原理](https://www.jianshu.com/p/28387056eeb4)
 
 - [LockSupport 用法及原理](https://www.jianshu.com/p/f1f2cd289205)
-

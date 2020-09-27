@@ -21,15 +21,15 @@
   ```mysql
   # 1 ：插入
   insert into <表>( <字段列表> ) values( <字段值列表> )
-  
+
   # 2 ：更新
   update <表> set <字段>=<字段值> where <查询条件>
-  
+
   # 3 ：删除
   delete from <表> where <查询条件>
   truncate table <表>	# 清空表
   # 注意：drop table table_name 用于删除表！是 DDL 指令！
-  
+
   # 将表的碎片优化！
   optimize table <表>
   ```
@@ -43,11 +43,10 @@
   # 也就是说 optimize table 对于innodb来说，无法作为a single operation，实际的操作是：
   ALTER TABLE <表> ENGINE=InnoDB;
   ANALYZE TABLE <表>;
-  
+
   # MySQL5.7已经推荐对于InnoDB的table使用 alter table table_name engine=innodb;语句的方式来进行表碎片优化。
   ```
 
-  
 
 + DCL：数据库控制语言
 
@@ -56,14 +55,14 @@
   ```mysql
   # 1 ：授权
   grant
-  
+
   # 2 ：事务回滚：是数据库状态会到事务提交之前的状态！
   rollback;
-  
+
   # 3 ：事务提交：显示提交、隐式提交、自动提交
   	# 1）：显示执行 commit 提交
   	commit;
-  
+
   	# 2）：隐式提交：使用 sql 命令默认会提交事务
   	alter、comment 、connect 、create 、drop 、exit 、grant 、quit 、remove 、rename
   	
@@ -79,16 +78,16 @@
 
 + 操作符
 
-  | 操作符      | 说明         |
-  | ----------- | ------------ |
-  | =           | 等于         |
-  | <           | 小于         |
-  | >           | 大于         |
-  | <> 或 !=    | 不等于       |
-  | <= 或 !>    | 小于等于     |
-  | >= 或 !<    | 大于等于     |
-  | BETWEEN AND | 在两个值之间 |
-  | IS NULL     | 为 NULL 值   |
+  | 操作符         | 说明       |
+  | ----------- | -------- |
+  | =           | 等于       |
+  | <           | 小于       |
+  | >           | 大于       |
+  | <> 或 !=     | 不等于      |
+  | <= 或 !>     | 小于等于     |
+  | >= 或 !<     | 大于等于     |
+  | BETWEEN AND | 在两个值之间   |
+  | IS NULL     | 为 NULL 值 |
 
 + 注意：0、NULL、空字符串 三者各不相同！
 
@@ -105,7 +104,7 @@
   ```mysql
   # 查询 id 为 2、3、4、5 的记录
   select <字段列表> from table_1 where id in (2,3,4,5); 
-  
+
   # 根据子查询，匹配table_1 的记录
   select <字段列表> from table_1 where id in (select <某一列> from table_2);
   ```
@@ -174,7 +173,7 @@
     select <字段列表> from <表> order by col_1 ASC,col_2 DESC;
     ```
 
-+ **order by 永远是 最后的一项参数！**
++ order by 永远是 最后的一项参数！
 
 ##### 分组 查询
 
@@ -185,7 +184,7 @@
   ```mysql
   # 按照 col 分组，相同 col 的记录会被划分到同一组中，count(*) 会计算 每组的记录总数（包括 NULL ）
   select col,count(*) from table_1 group by col;
-  
+
   # count(col_2) 会按照每组内的 col_2 记录总行数，不包括 col_2 为 NULL 的行！
   select col,count(col_2) from table_1 group by col;
   ```
@@ -200,13 +199,13 @@
   # count(*) total 为 count(*) 列起别名，也可以使用 as：count(*) as total
   ```
 
-+ **分组过滤：having**
++ 分组过滤：having
 
-  *where 用于过滤行，而 having 用于过滤 分组：group by 只能和 having 搭配，having 也只能和 group by 搭配！*
+  where 用于过滤行，而 having 用于过滤 分组：group by 只能和 having 搭配，having 也只能和 group by 搭配！
 
   如果在分组之前需要过滤某些行，则应该在 group by 之前使用 where 过滤！分组之后，只能使用 having 过滤！
 
-  所以：**group by 总是在 where 之后，在 order by 之前！**
+  所以：group by 总是在 where 之后，在 order by 之前！
 
   ```mysql
   # 按照 col 分组，分组之前过滤 id<=5 的行；
@@ -243,7 +242,7 @@
   ```mysql
   # 如下，子查询中返回了所有列，这是不合法的，将会报错！
   select name,(select * from teacher_A where teacher_A.id=teacher_B.id) from teacher_B;
-  
+
   # 报错：子查询中只能返回 1 列！
   ERROR 1241 (21000): Operand should contain 1 column(s)
   ```
@@ -272,12 +271,12 @@
   select * from table_1 join table_2 on table_1.id=table_2.id;
   # join + using
   select * from table_1 join table_2 using(id);
-  
+
   # using 和 on 区别在于：using 会将 同名关联列去重，而 on 则会都列出（无论是否同名）！
   # 如上：使用 on 时，table_1.id 和 table_2.id 都会显示（两列结果相同），而使用 using ，则只会显示一个 id 列！
   ```
 
-+ **表连接可以代替子查询，并且一般比子查询的效率更好**（且不谈子查询的底层原理，子查询都会建立临时表，用完之后删除临时表，浪费时间！）
++ 表连接可以代替子查询，并且一般比子查询的效率更好（且不谈子查询的底层原理，子查询都会建立临时表，用完之后删除临时表，浪费时间！）
 
 + 可以用 AS 关键字为 列、计算字段、表 取别名，这是为了简化 sql 语句 以及 连接相同表！
 
@@ -385,7 +384,7 @@
 
 #### 视图
 
-+ Mysql 的 视图是一个 基于 **基表** 的虚拟表，**不存放任何数据**。它和表处于同一个命名空间，具有与普通表相同的 DML 操作！
++ Mysql 的 视图是一个 基于 基表 的虚拟表，不存放任何数据。它和表处于同一个命名空间，具有与普通表相同的 DML 操作！
 
 + 视图定义
 
@@ -399,7 +398,7 @@
   VIEW view_name [ (column_list) ]
   AS select_statement
   [WITH [ CASCADED | LOCAL ] CHECK OPTION]
-  
+
   # 中括号 [] 中的内容可选
   # algorithm 表示 mysql 生成视图的算法：TEMPTABLE 表示生成临时表
   # DEFINER 定义 视图的人
@@ -414,14 +413,14 @@
   view vitural_table 
   AS select * from table_1 where table_1.id between 10 and 100;
   with check option;
-  
+
   # 使用视图
   select * from vitural_table;
   ```
 
 + 视图更新
 
-  视图时基于 基表的虚拟表，**对它的所有操作都会映射到实际的表中**！所以，也**能对视图进行更新，其本质就是 通过视图的定义 来更新实际的表**！
+  视图时基于 基表的虚拟表，对它的所有操作都会映射到实际的表中！所以，也能对视图进行更新，其本质就是 通过视图的定义 来更新实际的表！
 
   视图定义中的 with check option 属性会在更新视图时检查更新操作是否合法，不合法时会报错！
 
@@ -430,13 +429,13 @@
   ```mysql
   # 如上视图 vitural_table 的定义，它是 table id 为 10 到 100 之间的结果！
   # 因此，更新视图时，table id 也应该要在 这个范围内！
-  
+
   # 示例：假设 视图中存在 id=5 的记录
-  
+
   # 将 id 更新为 101 时报错！（不在 1 ~ 100 之间）
   mysql> update vitural_table set uid =101 where id=5;
   ERROR 1369 (HY000): CHECK OPTION failed 'db.vitural_table'
-  
+
   # 将 id 更新为 100 时成功 —— 满足定义时的条件！
   mysql> update vitural_table set uid =100 where id=5;
   Query OK, 1 row affected (0.01 sec)
@@ -450,13 +449,13 @@
   1. 视图被用作抽象装置，程序本身不需要关心基表的结构，只需要按照视图定义来获取或更新数据即可，一定程度上，起到安全层的作用！
   2. 可以用来简化复杂的 SQL 操作，比如：复杂的 表连接！
   3. 使用视图时，相当于只使用了实际表的部分数据！
-  4. **通过只给用户访问视图的权限，能保证数据的安全性！**
+  4. 通过只给用户访问视图的权限，能保证数据的安全性！
 
 + 注意：
 
-  1. **视图是虚拟的表，不包含数据，也就不可能有索引**！
+  1. 视图是虚拟的表，不包含数据，也就不可能有索引！
   2. mysql 不支持在 视图上建立 触发器！
-  3. **删除视图时不能使用 drop table 应该使用 drop view**
+  3. 删除视图时不能使用 drop table 应该使用 drop view
 
 #### 存储过程
 
@@ -485,7 +484,7 @@
   ```mysql
   # 自定义分隔符：暂时使用 // 作为 mysql 命令行的分隔符
   delimiter //
-  
+
   # 定义存储过程 my_procedure，并携带 int 类型的 返回参数 ret
   create procedure my_procedure(out ret int)
   # 代码块开始
@@ -500,7 +499,7 @@
   	select var_2 / var_1 into ret;
   # 代码块结束
   end //
-  
+
   # 分割符换回 分号(;)
   delimiter ;
   ```
@@ -569,7 +568,7 @@
   mytrigger after insert on table_1 
   for each row
   select new.col into @result;
-  
+
   # 当执行 insert 之后，将结果写入 @result 变量中，通过 select 获取结果！
   SELECT @result;
   ```

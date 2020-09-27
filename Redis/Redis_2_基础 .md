@@ -196,7 +196,7 @@
 
   ```java
   // LinkedHashMap 已经实现了 LRU  
-  
+
   /*
    · 实现1
    	当容量超过 100 时，开始执行 LRU：将最少未使用的 TimeoutInfoHolder 对象 evict 掉
@@ -208,11 +208,11 @@
           return size()>100;
       }
   }
-  
+
   /*
    · 实现2
   */
-  
+
   class LRUHandler<K,V> extends LinkedHashMap<K,V>{
       private int cacheSize;
       /**
@@ -302,7 +302,7 @@
   *多路：多个网络连接（多个 Socket 连接），复用：指复用同一个线程处理请求。*
 
   [redis 与 io 多路复用](https://blog.csdn.net/chennieg27434/article/details/100841252?depth_1-utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task)
-  
+
   [epoll：底层原理](https://www.jianshu.com/p/e6b9481ca754)
 
 ##### 事件处理器
@@ -351,4 +351,4 @@
 
 + 当一组命令中的*每条命令都不依赖 之前命令的执行结果* 时，就可以将这组命令通过 管道（pipline）一起发出。管道通过减少客户端与 Redis 的通信次数来实现**降低 往返时延累计值**的目的！
 
-  ![](image\pipline.png)
+    ![](image\pipline.png)

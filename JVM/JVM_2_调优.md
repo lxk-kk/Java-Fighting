@@ -40,7 +40,7 @@
   	
   -gcutil # 监视内容与 -gc 一样，显示的是 百分比
   -gccause # 与 -gcutil 一样，只是多了 GC 原因
-  
+
   # ... ...
   ```
 
@@ -61,7 +61,7 @@
   -flags					# 查看 所有的 虚拟机参数
   -sysprops 				# 查看 系统的默认属性
   <no option>				# 查看 虚拟机参数 和 系统默认参数
-  
+
   -flag [+|-]<name>		# 启用/屏蔽 name 指定的 虚拟机参数
   -flag <name>=<value> 	# 动态设定 name 指定的虚拟机参数的 值
   ```
@@ -79,12 +79,12 @@
   ```shell
   -dump  # 生成转储快照，格式如下
   -dump:[live,]format=b,file<filename> # live 表明是否只 转储（dump） 出存活对象
-  
+
   -finalizerinfo # 显示 F-Queue 中等待 Finalizer 线程执行的 finalizer 方法的对象 -- Linux/Solaris
   -heap # 显示 堆 详情，例如：回收器类型、参数配置、分代状况 等				  -- Linux/Solaris
   -histo # 显示 堆 中对象的统计信息，包括：类、实例数量、合计容量				 -- Linux/Solaris
   ```
-  
+
 + 除了 jmap 命令，还可以使用一些 JVM 参数让虚拟机在内存溢出时，自动dump出快照文件！
 
   ```shell
@@ -287,7 +287,7 @@
 
   ```
    · yongGC 频繁一般是短周期、小对象较多，先考虑是不是 Eden区/新生代 设置的太小了，看是否能通过 -Xmn -XX:SurvivorRatio 等参数设置解决问题
-  
+
    · 如果 参数设定之后 youngGC 频率依旧是太高，就需要使用 Jmap 和 dump 文件进一步进行排查了 
   ```
 
@@ -310,7 +310,6 @@
    · 根据触发条件 以及 dump的快照，具体分析
   ```
 
-  
 
 **了解过JVM调优没，基本思路是什么**
 
@@ -324,4 +323,3 @@
  
  · 对于G1收集器来说，可以适当调大Java堆，因为G1收集器采用了局部区域收集策略，单次垃圾收集的时间可控，可以管理较大的Java堆。
 ```
-

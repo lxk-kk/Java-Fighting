@@ -1,5 +1,4 @@
 
-
 ### Spring
 
 #### Spring 概念
@@ -101,15 +100,15 @@
 
 + 如下注解，用于定义一个**组件类**，各自本质都相同，代表的含义不同而已！
   + **@Controller** ：表示这是 controller 层的 Bean 对象
-  
+
   + **@Service** ：表示这是 service 层的 Bean 对象
-  
+
   + **@Repository** ：表示这是 持久层的 Bean 对象
-  
+
   + **@Component** ：表示这是自定义的组件，通过 @Component 标记，能够让 IOC 容器自动分类
-  
+
       [源码追踪：@Component 与 @Configuration 区别](www.freesion.com/article/494413591/) 
-  
+
 + 最后在 Spring 配置文件中配置 \<context:annotation-config/> 元素开启注解
 
   ```
@@ -121,7 +120,7 @@
 
   ```
   补充：SpringBoot 中的包扫描
-  
+
    · SpringBoot 启动时，会自动扫描 启动类所在的包，及其子包下的所有组件！
    	因此，在上述包中，标记了 @Component、@Controller、@Service、@Repository 的类，都会被扫描到，并为这些类 创建 Bean对象，加入到 IOC 容器中！
    	
@@ -447,7 +446,7 @@
          }
      }
      ```
-     
+
    + **补充：@PostConstruct 实现 静态Bean对象！**
 
      ```
@@ -625,8 +624,6 @@
       · singleton 采用了 单例模式，可以设定 Bean 加载的时间！
       	lazy-init = true ，启动懒加载：在第一次从容器中获取 Bean 时加载 Bean
       	lazy-init = false，立即加载：在容器启动时就加载 Bean
-      
-      · bean 随 JVM 的消亡而消亡 ？
      ```
 
   2. **prototype**（原型）
@@ -636,8 +633,6 @@
       	即：每次调用 getBean() 从容器中获取 Bean ，或者将该 Bean 注入到 另一个 Bean 中时，都会新创建一个 Bean！
       
       · prototype 作用域的 Bean，并不会在 容器启动时自动创建，而是在该 Bean 被第一次访问时被创建！
-      
-      · 线程每次访问都会创建一个 bean，因此我猜 bean 随着线程执行完毕而消亡 ？
      ```
 
   3. **request**
@@ -645,8 +640,6 @@
      ```
       · 每个 HTTP 请求到来时，都会创建一个新的 Bean，该 Bean 仅仅在当前 HTTP request 中有效！
       	request作用域 仅适用于 WebApplicationContext 环境！（Web 程序）
-      	
-      · bean 随着当前 request 的结束而消亡 ？
      ```
 
   4. **session**
@@ -654,8 +647,6 @@
      ```
       · 每次建立一个 session 都会创建一个 Bean 实例，该 Bean 仅仅在当前 session 中有效！
       	session作用域 仅适用于 WebApplicationContext 环境！（Web 程序）
-      	
-      · bean 随着当前 session 的结束而消亡 ？
      ```
 
   5. **global-session**
@@ -666,8 +657,6 @@
      	
       · 实际上：global-session 作用域只在 partlet web 应用程序中有意义！
       	partlet 中定义了 全局session 的概念，它被所有构成某个 portlet web 应用程序的各种不同的 portlet 共享！
-      
-      · bean 随着当前的 全局session 的结束而消亡 ？ 
      ```
 
 + *单例（singleton）Bean 线程安全问题*
@@ -968,7 +957,7 @@
 
      ```
       · 这个系列不仅仅是通过 url 来匹配 HandlerExecutionChain，匹配条件还包括 request的类型（GET、POST等）、请求的参数、Header等！
-     
+
       · 同时，该系列将 Method 作为 Handler 使用，它有一个专门的类型：HandlerMethod！
       	这是我们用的最多的一种 Handler，例如：Controller 中被 @RequestMapping 注释的方法，就是使用这种 Handler！
      ```
@@ -1029,7 +1018,7 @@
 
     ```
      · SpringBoot 提供了很多的依赖模块，开发者只需要在 pom 文件中添加相关依赖，在程序中以注解的方式就能使用这些模块功能！SpringBoot 会自动将 所需要的 Bean 注入到上下文中！
-    
+
      · 开箱即用，帮助我们免去大量繁琐的 Bean以及Bean依赖 的 XML 配置！
     ```
 
@@ -1037,7 +1026,7 @@
 
     ```
      · 百度百科：约定优于配置 也称作 按照按照约定编程，这是一种软件设计规范！通过约定好的默认配置，减少开发者在开发过程中的抉择次数，而开发人员只需要规定 约定中不适合实际应用 的部分！
-    
+
      · 例如：
      	实体类 blog ，那对象关系映射时，默认查找名为 blog 的数据库，这就是一种约定！
      	数据库中的 下划线命名方式 和 Java 程序程序中的 驼峰命名 方式，也是一种约定！
@@ -1055,7 +1044,7 @@
 
     2. 约定：默认的配置文件名为 application.properties 或者 application.yml，并且配置文件唯一！
 
-    3. 约定：以 starter 的形式减少依赖，因此集成了许多 starter！
+    3. 约定：以 starter 的形式减少依赖，因此集成了许多 starter！（第三方模块）
 
     4. 约定：
 
@@ -1063,7 +1052,7 @@
 
 + **特性：**在 Spring 基础上拥有独有的特性：
 
-  1. *创建 独立运行的Spring应用。*（将应用压缩成 jar 包，可以执行主席那个启动，而不需要另外配置一个 web 服务器）
+  1. *创建 独立运行的Spring应用。*（将应用压缩成 jar 包，可以直接运行 jar 包启动应用程序，而不需要另外配置一个 web 服务器）
   2. 能够使用*内嵌的Tomcat*、Jetty或Undertow，*不需要部署war。*
   3. 提供*定制化的启动器starters，简化第三方依赖配置。*（简化 MAVEN 依赖配置）
   4. 追求极致的*自动配置Spring。*
@@ -1118,4 +1107,3 @@
 #### 自动配置
 
 + @EnableAutoConfiguration、@Configuration、@ConditionalOnClass 是自动配置的核心，实现了 Spring的自动配置！
-

@@ -118,7 +118,7 @@
   ```mysql
   # 设置 old 端大小(表示整个 List 的 30%)
   set global innodb_old_blocks_pct=30;
-  
+
   # 该值得到的是 百分数，表示插入到 LRU 列表尾端的距离
   show variables like 'innodb_old_blocks_pct'\G
   ```
@@ -243,7 +243,7 @@
 
   **InnoDB 存储结构就是 B+ 树，树的 非叶子结点存放了 索引，而 所有数据存放在 叶子结点中！对于 InnoDB 来说，一个叶子结点 对应了 一页（页大小固定，通常为 16KB）。InnoDB 所有的页都在同一层，并且页与页之间通过指针相连，形成链表！**
 
-  注意：*正是因为 叶子结点中存放的是页，所以 InnoDB 存储引擎并不能在 B+树 中找到具体的数据行，它只通过 索引检索到 数据行所在的 页，并将页完整的读入到内存中，在内存中查找到数据* ！
+  注意：*正是因为 叶子结点中存放的是页，所以 InnoDB 存储引擎并不能在 B+树 中找到具体的数据行，它只通过 索引检索到 数据行所在的 页，将页完整的读入到内存中，在内存中查找到数据* ！
 
 + 使用场景
 
@@ -272,8 +272,8 @@
   · InnoDB 的 B+Tree 索引分为 主索引和辅助索引：
   	聚族索引（主索引）：按照主键值 构建 B+Tree，叶子结点中存放的完整的数据，一个表中只能由一个聚族索引！
   	辅助索引：按照其他索引列 构建 B+Tree，叶子节点中存放的是 主索引的值。在辅助索引中 检索 主键值，再到主索引树中查找！
-  
-  · 主键值 是 一列或者多列 的组合，其值能够唯一标识表中的每一行，通过它可以强制表的实体的完整性！
+
+  · 主键值 是 一列或者多列 的组合，其值能够唯一标识表中的每一行，通过它可以强制表的实体完整性！
   -->
   ```
 
@@ -284,7 +284,7 @@
    · Hash 索引基于 哈希表实现，能以 O(1) 时间查找，但是无法保证数据的有序性！
   	对于每一行数据，存储引擎都会对所有的索引列计算一个 哈希码（hash code）！
   	哈希索引 将所有的 哈希码 存储在索引中，同时在哈希表中保留 指向每个数据行 的指针！如果出现 哈希冲突，索引会以 链表的方式存放多个记录到同一个 哈希条目中！
-  
+
    · 优点：
   		能快速地查找！
    · 缺点
@@ -298,7 +298,7 @@
   		  当删除某一行时，存储引擎需要遍历对应哈希值的链表中的每一行，并找到应该删除的行，冲突越多，代价越大！
   	
    · Memory 引擎默认使用 Hash 索引，同时也支持 B+Tree。
-  
+
    · InnoDB 支持 “自适应的 哈希 索引”
   	当 InnoDB 注意到某些索引值被使用的非常频繁时，它会在内存中，基于 B+Tree 索引之上，再创建一个 哈希索引，这样就能让 InnoDB 借助 哈希索引 加快查找速度！
   -->
@@ -316,18 +316,18 @@
   + 全文索引使用 **倒排序** 实现，它记录着关键词到其所在文档的映射！
 
   + 应用
-  
+
     MyISAM 存储引擎支持 全文索引；
-  
+
     MySQL 5.6.4 开始，InnoDB 存储引擎也支持 全文索引！在相同的列上同时创建全文索引 和 基于值的 B+Tree 索引并不会有冲突。
 
 ##### 索引优点
 
 1. 能够高效地检索数据
 
-2. 由于 B+Tree 的有序性，与 索引 相关的值都会存储在一起，MySQL 能够通过 order by 和 group by 轻松的实现 排序和分组，而避免创建 临时表！
+2. 由于 B+Tree 的有序性，与 索引 相关的值都会存储在一起，MySQL 能够通过 order by 和 group by 轻松的实现 排序和分组，而**避免创建 临时表**！
 
-   对于普通列 的排序和分组，需要创建 临时表 实现！
+   **对于普通列 的排序和分组，需要创建 临时表 实现**！
 
    ```
    如下：test2 表中的 name 字段是普通字段，分别对其执行 order by 和 group by
@@ -394,16 +394,16 @@
    ```mysql
    select 1=1; # 结果为 1 ：因为 1==1
    select 1=0; # 结果为 0 ：因为 1!=0
-   
+
    alter table test_table add index `idx_int_a`(a); # 在 int 类型的 a字段 上加索引！
    alter table test_table add index `idx_varhcar_b`(b) # 在 varchar 类型的字段 b 上加索引！
-   
+
    select ... where a=1; 		# 走
    select ... where a='n';		# 走：将 'n' 转换为整型 0（字符串都会转换为 0）
-   
+
    select ... where b=1;		# 不走索引：将字段 b 转换为整型 0
    select ... where b='n';		# 走
-   
+
    # 由于 `idx_varchar_b` 是根据 字符串b 建立的 B+树，树中是按照 字符串 排序的（字符集排序）
    # 因此树中可能存在  'a'>'b'
    # 而，字段 b 需要转换为整型，如果 b 走索引的话，那么，b+树中都需要进行转换！
@@ -457,7 +457,7 @@
 
   ```mysql
   select * from school where class_id = 1 and student_id = 2;
-  
+
   # 应将 class_id 和 student_id 作为组合索引！
   ```
 
@@ -479,7 +479,7 @@
       count( distinct customer_id) / count(*) as customer_id_selectivity,
       count(*)
   from payment;
-  
+
   # 得出结果如下时：
     staff_id_selectivity		: 0.0001
     customer_id_selectivity	: 0.0373
@@ -552,7 +552,7 @@
 ##### 索引使用场景
 
 + 索引用于优化查询数据，提高数据库查询性能！
-  	1、经常作为查询选择的字段：适合作为索引
+   1、经常作为查询选择的字段：适合作为索引
     	2、经常作为表连接的字段：适合作为索引
     	3、经常出现在在order by、group by、distinct等关键字后面的字段：适合作为索引
 
@@ -575,12 +575,12 @@ show status like 'Handler_read%'
 + Explain 用来查看 优化器的执行计划，我们可以通过 Explain 结果来优化查询语句！
 
   [explain 详解](https://www.jianshu.com/p/73f2c8448722)
-  
+
   ```
   explain # 查询执行计划
   show warnings; # 根据查询计划，查看具体执行 sql 语句
   ```
-  
+
 
 ##### 优化 数据访问
 
@@ -639,7 +639,7 @@ show status like 'Handler_read%'
     join tag_post on tag_post.id=tag.id
     join post on tag_post.post_id=post_id
     where tag.tag='mysql';
-    
+
     # 可在应用层将其拆分成多个查询语句，并关联查询！
     select * from tag where tag='mysql';
     select * from tag_post where tag_id=1234;
@@ -760,7 +760,7 @@ show status like 'Handler_read%'
     ```mysql
     # 例如：外层查询会全表扫描
     select id from t1 where num in(select id from t2 where id > 10);
-    
+
     # 改成：表连接
     select id from t1,(select id from t1 where id > 10)t2 where t1.id = t2.id;
     ```
@@ -819,7 +819,7 @@ show status like 'Handler_read%'
      ```
       · 为了减少 磁盘 IO 操作，磁盘往往不是严格的按需读取，而是每次都会预读！
       · 由于 B+Tree 的叶子结点有序，因此，读取数据的同时，可以将相邻结点预先载入内存中，对于相邻结点的数据页，磁盘会进行顺序读取，只需要很短的磁盘旋转时间，而不需要耗费磁盘寻道时间，非常快速！
-     
+
       · 操作系统一般将内存和磁盘分割成固定大小的块，每一块称为一页，内存与磁盘以页为单位交换数据。数据库系统 中的一个叶子结点就对应了一页，每次查询时，都会将一页数据载入程序中，在程序中查找具体的行！
      ```
 
@@ -1052,7 +1052,7 @@ show status like 'Handler_read%'
 
   事务管理器：连接 MySQL 服务器的客户端
 
-  <img src="C:/Users/10652/Desktop/Fighting/temp_over/MySQL/image/分布式事务 MySQL.png" style="zoom:80%;" />
+  <img src="image/分布式事务 MySQL.png" style="zoom:80%;" />
 
 + 分布式事务采用 两段式提交 的方式！
 
@@ -1159,14 +1159,14 @@ show status like 'Handler_read%'
      ```mysql
      # 如果要监控这类 SQL 语句：则需要使用参数：
      log_queries_not_using_indexes
-     
+
      # 将慢查询日志 输出到 mysql 库的 slow_log 表中，同时数据到文件中！（默认只有文件）
      set global log_output='TABLE,FILE';
      # show variables like 'log_queries_not_using_indexes'; 查看状态！
-     
+
      # 开启无索引慢查询监控
      set global log_queries_not_using_indexes='ON';
-     
+
      # 设置每分钟 允许记录到 slow log 但未使用索引的次数。
      # 默认为 0 表示没有限制：这回导致 slow_log 文件的大小不断增大！
      set global log_throttle_queries_not_using_indexes=100;
@@ -1179,7 +1179,7 @@ show status like 'Handler_read%'
   set global long_query_time=2;
   set global min_examined_row_limit=5; 
   # 查看慢查询日志(mysql 库中的 slow_log 表中)
-  user mysql;
+  use mysql;
   select * from slow_log;
   ```
 

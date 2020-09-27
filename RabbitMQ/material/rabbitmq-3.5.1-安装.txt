@@ -1,4 +1,5 @@
-﻿系统版本：CentOS 6.5
+
+系统版本：CentOS 6.5
 RabbitMQ－Server：3.5.1
 一、安装erlang
 1.安装准备，下载安装文件
@@ -11,16 +12,16 @@ RabbitMQ－Server：3.5.1
 
 3.安装完成后可以用erl命令查看是否安装成功
 	erl -version
-	
+
 	安装成功提示：Erlang (ASYNC_THREADS,HIPE) (BEAM) emulator version 5.10.4
-	
+
 二、安装RabbitMQ Server
 1.安装准备，下载RabbitMQ Server
 	wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.15/rabbitmq-server-3.6.15-1.el6.noarch.rpm
 2.安装RabbitMQ Server
 	rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
 	yum install rabbitmq-server-3.6.15-1.el6.noarch.rpm
-	
+
 三、启动RabbitMQ
 1.配置为守护进程随系统自动启动，root权限下执行:
 	chkconfig rabbitmq-server on
@@ -51,7 +52,5 @@ RabbitMQ－Server：3.5.1
 	rabbitmqctl set_permissions -p "/" root ".*" ".*" ".*"
 4.设置完成后可以查看当前用户和角色(需要开启服务)
 	rabbitmqctl list_users
-	
+
 浏览器输入：serverip:15672。其中serverip是RabbitMQ-Server所在主机的ip。
-
-

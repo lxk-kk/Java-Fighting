@@ -30,9 +30,9 @@
       ```java
       /*
       局部变量是储存在栈上的，而栈上的内容在当前线程执行完成之后就会被GC回收！
-      
+
       lambda 表达式会被交给另一个线程执行，而不是其所在方法的执行线程，所以，当所在方法的执行线程执行完毕后，执行 lambda的线程 需要时使用到 lambda 外部的局部变量时会出错（因为该外部的局部变量已经被回收）！
-      
+
       鉴于上述原因：会将该局部变量拷贝一份到 lambda 表达式内部，为了保证数据的一致性，强制使用 final 修饰！
       */
       ```
@@ -149,10 +149,10 @@
      // 等价于
      x->this.equals(x);
      // this与super同样是针对 使用该函数式编程的类而言的！
-     
+
      super::instanceMethod;
      // 使用 super 作为 目标（调用者），它会调用给定实例方法的超类版本！如下：
-     
+
      class Greeter{
          public void greet(){
              System.out.println("Super Hello World");
@@ -164,7 +164,7 @@
              t.start();
          }
      }
-     
+
      // TimedGreeter.greet方法开始执行时，会构造一个 Timer ，他会在 每次定时器滴答时执行super::greet方法，这个方法会调用 超类的 greet 方法！
      ```
 
@@ -263,13 +263,13 @@
          default void print() {
          }
      }
-     
+
      public class Test implements interface_1, interface_2 {
          public static void main(String[] args){
          }
      }
      // 编译Error：java: 类型test.interface_2和test.interface_1不兼容; 两者都定义了print(), 但却带有不相关的返回类型
-     
+
      // 实现多个接口，若不同的接口中存在 仅返回值类型不同的方法（无论是默认的、抽象的还是两者混合的），都无法成功编译！应该通过设计避免这种情况的发生！但是这个规则，对于接口中的 静态方法 不适用！
      ```
 
@@ -372,7 +372,7 @@
    + **非线程安全**：java.util.Date 是线程不安全的，所有的日期类都是可变的，这是 Java 日期最大的问题之一。
    + **设计差**：Java 的日期/时间类的定义并不一致，在 java.util 和 java.sql 的包中都有日期类，此处用于格式化和解析的类在 java.text 包中定义。java.util.Date 同时包含日期和时间，而 java.sql.Date仅仅包含了日期，所以将其纳入 java.sql 包并不合理。另外这两个类都有相同的名字——糟糕的设计。
    + **时区处理麻烦**：日期类并不提供国际化，没有时区支持，因此 java 引入了 java.util.Calendar 和 java.util.TimeZone 类，但他们同样存在上述问题！
-   
+
 2. [详见：Java8新特性-日期类](https://www.jianshu.com/p/cb9e04077201)
 
 ##### Base 64
@@ -390,7 +390,7 @@
   4、可以将 非ASCII字符 的数据转换为 ASCII字符，避免了不可见字符！
   5、使用场景：
   	1）通常用于处理文本数据的场合，表示、传输、存储一些二进制数据，包括MIME的电子邮件及XML的一些复杂数据，例如 http 请求/响应
-  
+
   【MD5】 是一种加密算法
   1、使用的是 一种散列表的计算方式，具有弱碰撞性和高度离散型：将原始字符修改一点点，其加密后的字符串变化都会很大！
   2、具备不可逆性
@@ -401,5 +401,3 @@
   	3）用 md5 进行数字签名：防止数字签名被篡改
   */
   ```
-
-  

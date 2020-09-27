@@ -198,7 +198,7 @@
 + 多态
 
   ```
-   · 多态 指 对象同时具有多种行态，但在特定的情况下，表现为某种特定的状态。
+   · 多态 指 对象同时具有多种状态，但在特定的情况下，表现为某种特定的状态。
    	这使得，在编译期无法确定 对象引用 的具体类型，也 无法确定其调用的具体方法！而是在运行期，才能确定其引用的具体对象，以及所要调用具体方法。
    
    · 使得 编写的代码更加的通用，更加的灵活，以应对不同需求的变化！
@@ -252,11 +252,11 @@
 
   ```
   1、一个类允许实现多个接口！也可以被子类扩展！
-  
+
   2、接口中的 域 必须是 static final 的常量，不能是实例域！
   3、jdk 8 之前，接口中不能实现方法，也不能包含静态方法，jdk 8 开始，可以在 接口中实现默认方法和静态方法！
   4、接口中的方法自动会被设置成 public，接口中的常量自动被设为 public static final
-  
+
   5、接口不是类，不能被实例化，可以定义一个 接口变量，但它只能引用其实现类的对象！
   ```
 
@@ -320,7 +320,7 @@
        */
       ElementType[] value();
   }
-  
+
   public enum ElementType {
       // 类、接口（包括注解类型）、枚举
       TYPE,
@@ -344,7 +344,7 @@
       TYPE_USE,	
       MODULE
   }
-  
+
   // 示例：
   @Target({ElementType.TYPE, ElementType.METHOD})
   public @interface MyAnn{ 
@@ -368,9 +368,9 @@
       // 在 运行时 保留：（运行时有效）运行时可见
       RUNTIME
   }
-  
+
   ```
-  
+
 + **@Documented：注解会被文档化**
 
   ```java
@@ -442,24 +442,24 @@ public class MyTestClass{}
      int[][] b1 = {{1}, {3}};     // ok : 简写方式
      int[] b2 = new int[]{1, 2};  // ok : 创建数组的同时，初始化数组
      int[] a2 = new int[k];       // ok : k 可以是 常量、变量、0 ：Java中允许数组的长度为 0
-     
+
      a1 = new int[]{1};           // ok : 初始化一个 匿名数组，这种形式可以在 不创建新变量的情况下 重新初始化 一个旧的数组！
-     
+
      int[] a4 = new int[];        // Error: java: 缺少数组维
      ```
 
   3. **数组（默认）初始化**
 
      + 创建 一个 **数值 数组：所有元素初始化为 0**
-     
+
        `例如：int [] a=new int[n];`
-     
+
      + 创建 一个 **boolean 数组：所有元素会被初始化为 false**
-     
+
        `例如：boolean [] a=new boolean[n];`
-     
+
      + 创建 一个 **对象 数组：所有对象元素会被初始化为 特殊值 null**
-     
+
        `例如：Object [] a=new Object[n];`
 
 #### equals & hashcode
@@ -482,15 +482,15 @@ public class MyTestClass{}
   // Object 类下的 hashcode 方法
   @HotSpotIntrinsicCandidate
   public native int hashCode();
-  
+
   /*
   hashcode 方法定义在 Object 类中，因此每个对象都有一个默认的 hash码，默认为 该对象的储存地址！然而对于字符串而言，它的哈希码是由其内容导出的！即：字符串内容相同的两个字符串对象其hash码相同。
   hashCode 方法应该返回一个整型数值（可以为负数），并合理地组合实例域的 哈希码 ，以便能够让各个不同的对象产生的 哈希码 更加均匀的分布，减少 hash 冲突！
-  
+
   建议使用 null 安全的 Objects.equals、Objects.hashCode！
   Objects.hash 是一个可变参数的方法，它会根据传入的参数，对各个参数调用 Objects.hashCode 方法，并组合这些 哈希码 ！
   如果使用数组类型，可以使用静态的 Arrays.hashCode 方法计算该数组的 hash码，该hash码由各个元素的 hash码组成。
-  
+
   如果重新定义了equals方法，就必须重新定义hashcode方法，以便开发人员可以将对象插入到散列表中！
   equals 方法的语意 和 hashCode 方法的语意 必须一致！
   	如果 x.equals(y) 为 true 那么 x.hashCode()==y.hashCode() 为 true ！
@@ -523,16 +523,16 @@ public class MyTestClass{}
 
 + 8 种基本类型 vs 包装类
 
-  | 基本数据类型 | 包装类    | 大小             |
-  | ------------ | --------- | ---------------- |
-  | boolean      | Boolean   | 1 字节  、4 字节 |
-  | byte         | Byte      | 1 字节           |
-  | char         | Character | 2 字节           |
-  | short        | Short     | 2 字节           |
-  | int          | Integer   | 4 字节           |
-  | float        | Float     | 4 字节（无缓存） |
-  | double       | Double    | 8 字节（无缓存） |
-  | long         | Long      | 8 字节（无缓存） |
+  | 基本数据类型  | 包装类       | 大小          |
+  | ------- | --------- | ----------- |
+  | boolean | Boolean   | 1 字节  、4 字节 |
+  | byte    | Byte      | 1 字节        |
+  | char    | Character | 2 字节        |
+  | short   | Short     | 2 字节        |
+  | int     | Integer   | 4 字节        |
+  | float   | Float     | 4 字节（无缓存）   |
+  | double  | Double    | 8 字节（无缓存）   |
+  | long    | Long      | 8 字节（无缓存）   |
 
   *boolean 大小会根据使用场景确定：*
 
@@ -683,7 +683,7 @@ private static class IntegerCache {
 
    ```
     · 所有异常都是由 Throwable  继承而来，Java 异常被分为 受查异常 和 非受查异常！
-   
+
      Throwable
      |
      | ------> Error	：非受查异常
@@ -702,7 +702,7 @@ private static class IntegerCache {
     
     · 可控异常：RuntimeException
     	例如：因为 null 抛出的 空指针异常！
-   
+
     · 不可控错误：Error
     	例如：因为内存泄漏导致的 OOM，或者是 栈大小不足产生的 StackOverFlowError 等！
    ```
@@ -712,7 +712,7 @@ private static class IntegerCache {
    ```
     · 程序本身没有问题，通常由于 系统资源请求出现错误导致的异常！（例如：I/O错误）
     	编译器会检查是否为 程序中所出现的 受查异常 提供异常处理器，强制开发人员捕获异常并处理！
-   
+
     · 这类异常，并不是由于程序错误产生的，为了保证程序的健壮性，将这类异常声明为 受查异常，强制开发人员对其进行处理，避免程序因为这类异常而中断运行，也避免了因为请求资源失败，而出现资源未关闭的问题的出现！
    ```
 
@@ -752,7 +752,7 @@ private static class IntegerCache {
   ```
    · NullPointerException 是 空指针异常，就是 NPE 问题
   	这是由于程序代码对 null 处理不仔细引起的，这种异常人为可控！
-  
+
    · ArrayIndexOutOfBoundException 是 java 中数组越界的引发的异常
    	同样是由于 代码处理不完善引起，这种异常人为可控！
    	
@@ -771,8 +771,6 @@ private static class IntegerCache {
 
   ```
   JDK顾名思义是java开发工具包，是程序员使用java语言编写java程序所需的开发工具包，是提供给程序员使用的。
-  
+
   JDK包含了JRE，同时还包含了编译java源码的编译器javac，还包含了很多java程序调试和分析的工具：jconsole，jvisualvm等工具软件，还包含了java程序编写所需的文档和demo例子程序。
   ```
-
-  

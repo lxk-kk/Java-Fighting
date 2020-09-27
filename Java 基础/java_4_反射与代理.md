@@ -67,7 +67,7 @@
    ```java
    /*
     · 如果 T 是 任意的 java 类型（甚至 void 关键字），则 T.class 将代表该类型的 Class 对象。
-   
+
     · 注意：一个 Class 对象实际上表示的是一个类型，而这个类型未必一定是一种类：
    */
    Class voidClass = void.class;	// void 并不是一种类
@@ -85,7 +85,7 @@
     · 调用静态方法 forName 获取类名对应的 Class 对象
     · 该方法只有在 className 是类名或者是接口名时才能够执行，并且会抛出 checked exception ：ClassNotFoundException
    */
-   
+
    /*
     · 程序启动时，包含 main 方法的类会被加载，它会加载所有需要的类，这些被加载的类又要加载他们需要的类！
     · spring boot 启动类？
@@ -402,11 +402,11 @@ public class Solution {
   public class ProxyRole implements AbstractRole {
       // 封装真实角色（写死：紧耦合：一个代理类只能代理一个真实角色类）
       private RealRole realRole;
-  
+
       ProxyRole(RealRole role) {
           this.realRole = role;
       }
-  
+
       // 在真实角色的行为上，添加自己的附属行为（打个广告啥的）
       @Override
       public void action() {
@@ -431,7 +431,7 @@ public class Solution {
           role.action();
       }
   }
-  
+
   // ------------------------------------------------ 
   // 输出结果：
   i am proxy person, following is the real one!
@@ -483,6 +483,18 @@ public class Solution {
    	CGLIB 能够 为代理类中的不同方法，注册不同的 方法拦截器！
   	CGLIB 通过 enhancer 可以注册多个的 MethodInterceptor ，同时，通过 enhancer注册 回调过滤器（CallbackFilter） 可以决定方法使用 哪一个 MethodInterceptor  做增强！
   ```
+
+> + **JDK vs CGLIB 性能对比**
+>
+>   + CGLib底层采用ASM字节码生成框架，使用字节码技术生成代理类，在 JDK1.6 之前比使用 Java 反射效率要高。
+>
+>     唯一需要注意的是，CGLib不能对声明为final的方法进行代理，因为*CGLib原理是动态生成被代理类的子类*。
+>
+>   + 在 JDK1.6、JDK1.7、JDK1.8 逐步对 JDK 动态代理优化之后：
+>
+>     在**调用次数较少**的情况下，JDK 代理效率高于CGLib 代理效率
+>
+>     当进行**大量调用**的时候，JDK1.6 和 JDK1.7 比 CGLib 代理效率低一点，但是 JDK1.8 中 JDK 代理效率高于 CGLib 代理
 
 ##### JDK 动态代理
 
@@ -587,11 +599,11 @@ public class Solution {
   // 一个调用处理器 代表了 一类业务！ 
   public class DynamicProxyInvocationHandler implements InvocationHandler {
       private AbstractRole abstractRole;
-  
+
       DynamicProxyInvocationHandler(AbstractRole role) {
           this.abstractRole = role;
       }
-  
+
       @Override
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
           System.out.println("hello, this is dynamic proxy executing ... ... ");
@@ -650,7 +662,7 @@ public class Solution {
   ```
 
 + **实现步骤：**
-  
+
   1. 定义一个 *MethodInterceptor接口的实现类，并实现接口方法 intercept()*  ！
   2. 在 intercept() 方法中，调用 MethodProxy 实例的 **invokeSuper() 方法**：*表示调用 原始类的 方法*。
   3. 在 intercept() 方法中，增加 *附加的代理行为，增强原始类*。
@@ -699,7 +711,7 @@ public class Solution {
       public void eat() {
           System.out.println("我要开始吃饭咯...");
       }
-  
+
       public void play() {
           System.out.println("我要出去玩耍了,,,");
       }

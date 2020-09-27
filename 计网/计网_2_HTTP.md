@@ -72,7 +72,6 @@
 
   响应报文：响应端 发送的 HTTP 报文
 
-  
 
 + 报文组成：报文首部、空行、报文主体
 
@@ -160,7 +159,7 @@
   Host: www.example.com
   Content-type: text/html
   Content-Length: 1500 <!-- 1500 字节的数据 -->
-  
+
   <p>New File</p>
   ```
 
@@ -190,7 +189,7 @@
   	2、当资源不存在时：
   		patch：可能会创建一个新资源
   		put：只对已有资源更新
-  
+
    · 综上所述：
   	PATCH 方法类似于 saveOrUpdate
   	PUT 方法类似于 update
@@ -206,7 +205,7 @@
   ```html
   HEAD /index.html HTTP/1.1
   Host: www.example.com
-  
+
   <!-- 响应时：返回 index.html 有关的响应首部！ -->
   ```
 
@@ -219,11 +218,11 @@
   ```html
   OPTIONS * HTTP/1.1
   Host: www.example.com
-  
+
   <!-- 响应时： -->
   HTTP/1.1 200 OK
   Allow: GET,POST,HEAD,OPTIONS	<!-- 表示 服务器支持的访问方法 -->
-  
+
   <!-- 如果实际请求的方法不在上述 允许的方法中，浏览器报错：CORS -->
   ```
 
@@ -232,10 +231,10 @@
 + 要求 在于 代理服务器 通信时 建立隧道，使用 SSL（Secure Sockets Layer：安全套接层） 和 TLS（Transport Layer Security：传输层安全）协议 把通信内容 加密后 经过 网络隧道 传输 —— HTTPS！
 
   ```html
-<!-- CONNECT 代理服务器名:端口号 HTTP版本 -->
+  <!-- CONNECT 代理服务器名:端口号 HTTP版本 -->
   CONNECT www.example.com:443 HTTP/1.1
   ```
-  
+
   ![](image\HTTP CONNECT 示例图.jpg)
 
 ###### TRACE
@@ -246,7 +245,7 @@
 
   发送请求时，在 Max-Forwards 首部字段中填入数值，每经过一个服务器，数值就会 -1，当数值减为 0  时停止传输，最后接收到请求的服务器就会返回状态码 200 OK 的响应！响应中包含了 请求时的 信息！
 
-  通常不会使用 TRACE，并且它容易收到 XST（Cross-Site Tracing：跨站追踪） 攻击，就更不会使用了！
+  通常不会使用 TRACE，并且它容易收到 CST（Cross-Site Tracing：跨站追踪） 攻击，就更不会使用了！
 
 ###### GET vs POST
 
@@ -267,21 +266,23 @@
    · 隐私安全性
   	GET 参数直接显示在 URL 中，而 POST 参数存放在 实体主体中，相对来说，GET 参数直接暴露在外！
   	POST 实际上也不能保证用户隐私，依旧能通过抓包工具（Fiddler）查看实际内容！
-  
-  
+
    · 总结：
   	POST 和 GET 的数据都不是安全的，都是明文传输！
-  	
+
+
    · 安全传输：
-  	1、HTTP 协议是 明文传输，如果想要安全，则可以使用 HTTPS，其内容都经过了加密！
-  	2、在客户端使用插件，对 POST 的内容本地加密后，传输给 服务端！
-  
+   1、HTTP 协议是 明文传输，如果想要安全，则可以使用 HTTPS，其内容都经过了加密！
+   2、在客户端使用插件，对 POST 的内容本地加密后，传输给 服务端！
+
    · HTTP vs HTTPS
-  	使用 HTTP 时，应用层会直接将数据包交付给下一层 TCP 层，TCP 再经过握手与服务端建立连接，并发送数据，此过程没有数据加密的，明文传输！
-  
-  	使用 HTTPS 时，应用层将 数据包交付给 TCP 之前，会先将数据交付给 位于 http 与 tcp 中间的 ssl协议，数据包经过 ssl 加密之后，再传输给下一层！
+
+   使用 HTTP 时，应用层会直接将数据包交付给下一层 TCP 层，TCP 再经过握手与服务端建立连接，并发送数据，此过程没有数据加密的，明文传输！
+   使用 HTTPS 时，应用层将 数据包交付给 TCP 之前，会先将数据交付给 位于 http 与 tcp 中间的 ssl协议，数据包经过 ssl 加密之后，再传输给下一层！
+
   -->
   ```
+
 
 + **接口安全**
 
@@ -292,12 +293,13 @@
   ```html
   <!--
    · 安全的 HTTP 是只读的方法，它不会改变 服务端的数据状态！
-  
+
    · HTTP 中的方法安全性：
   	安全的方法：GET、HEAD、OPTIONS
   	不安全的方法：POST、PUT、PATCH、DELETE
   -->
   ```
+
 
 + **幂等性**
 
@@ -331,7 +333,7 @@
 
   GET ：由于 URL 只支持 ASCII 码，因此 GET 的参数中如果存在中文等字符，就需要先进行编码！
 
-  ​			例如：`中文` 会被转换为`%E4%B8%AD%E6%96%87`，并且`空格`会被转换为 `%20`
+  + 例如：`中文` 会被转换为`%E4%B8%AD%E6%96%87`，并且`空格`会被转换为 `%20`
 
   POST ：支持任意 binary（包括中文）
 
@@ -464,70 +466,70 @@
 
 ###### 通用首部字段
 
-| 首部字段名        | 说明                                           |
-| ----------------- | :--------------------------------------------- |
-| **Cache-Control** | 控制缓存的行为                                 |
+| 首部字段名             | 说明                        |
+| ----------------- | :------------------------ |
+| **Cache-Control** | 控制缓存的行为                   |
 | **Connection**    | 控制不再转发给代理的首部字段、**管理持久连接** |
-| Date              | 创建报文的日期时间                             |
-| Pragma            | 报文指令                                       |
-| Trailer           | 报文末端的首部一览                             |
-| Transfer-Encoding | 指定报文主体的传输编码方式                     |
-| Upgrade           | 升级为其他协议                                 |
-| Via               | 代理服务器的相关信息                           |
-| Warning           | 错误通知                                       |
+| Date              | 创建报文的日期时间                 |
+| Pragma            | 报文指令                      |
+| Trailer           | 报文末端的首部一览                 |
+| Transfer-Encoding | 指定报文主体的传输编码方式             |
+| Upgrade           | 升级为其他协议                   |
+| Via               | 代理服务器的相关信息                |
+| Warning           | 错误通知                      |
 
 ###### 请求首部字段
 
-| 首部字段名                  | 说明                                            |
-| --------------------------- | ----------------------------------------------- |
-| **Accept**                  | 用户代理可处理的媒体类型*（同源跨域相关）*      |
-| Accept-Charset              | 优先的字符集                                    |
-| Accept-Encoding             | 优先的内容编码                                  |
-| Accept-Language             | 优先的语言（自然语言）                          |
-| **Authorization**           | Web 认证信息                                    |
-| Expect                      | 期待服务器的特定行为                            |
-| From                        | 用户的电子邮箱地址                              |
-| **Host**                    | 请求资源所在服务器                              |
-| **If-Match**（如果匹配）    | 比较实体标记（**ETag**）                        |
-| **If-Modified-Since**       | 比较资源的更新时间                              |
-| If-None-Match（如果不匹配） | 比较实体标记（与 If-Match 相反）                |
-| If-Range                    | 资源未更新时发送实体 Byte 的范围请求            |
-| If-Unmodified-Since         | 比较资源的更新时间（与 If-Modified-Since 相反） |
-| Max-Forwards                | 最大传输逐跳数*（TRACE 方法就是利用这个字段）*  |
-| Proxy-Authorization         | 代理服务器要求客户端的认证信息                  |
-| **Range**                   | 实体的字节范围请求                              |
-| Referer                     | 对请求中 URI 的原始获取方                       |
-| TE                          | 传输编码的优先级                                |
-| User-Agent                  | HTTP 客户端程序的信息                           |
+| 首部字段名                 | 说明                                |
+| --------------------- | --------------------------------- |
+| **Accept**            | 用户代理可处理的媒体类型*（同源跨域相关）*            |
+| Accept-Charset        | 优先的字符集                            |
+| Accept-Encoding       | 优先的内容编码                           |
+| Accept-Language       | 优先的语言（自然语言）                       |
+| **Authorization**     | Web 认证信息                          |
+| Expect                | 期待服务器的特定行为                        |
+| From                  | 用户的电子邮箱地址                         |
+| **Host**              | 请求资源所在服务器                         |
+| **If-Match**（如果匹配）    | 比较实体标记（**ETag**）                  |
+| **If-Modified-Since** | 比较资源的更新时间                         |
+| If-None-Match（如果不匹配）  | 比较实体标记（与 If-Match 相反）             |
+| If-Range              | 资源未更新时发送实体 Byte 的范围请求             |
+| If-Unmodified-Since   | 比较资源的更新时间（与 If-Modified-Since 相反） |
+| Max-Forwards          | 最大传输逐跳数*（TRACE 方法就是利用这个字段）*       |
+| Proxy-Authorization   | 代理服务器要求客户端的认证信息                   |
+| **Range**             | 实体的字节范围请求                         |
+| Referer               | 对请求中 URI 的原始获取方                   |
+| TE                    | 传输编码的优先级                          |
+| User-Agent            | HTTP 客户端程序的信息                     |
 
 ###### 响应首部字段
 
-| 首部字段名         | 说明                         |
-| ------------------ | ---------------------------- |
-| Accept-Ranges      | 是否接受字节范围请求         |
-| Age                | 推算资源创建经过时间         |
-| **ETag**           | 资源的匹配信息               |
-| **Location**       | 令客户端重定向至指定 URI     |
+| 首部字段名              | 说明             |
+| ------------------ | -------------- |
+| Accept-Ranges      | 是否接受字节范围请求     |
+| Age                | 推算资源创建经过时间     |
+| **ETag**           | 资源的匹配信息        |
+| **Location**       | 令客户端重定向至指定 URI |
 | Proxy-Authenticate | 代理服务器对客户端的认证信息 |
-| Retry-After        | 对再次发起请求的时机要求     |
-| Server             | HTTP 服务器的安装信息        |
-| **Vary**           | 代理服务器缓存的管理信息     |
-| WWW-Authenticate   | 服务器对客户端的认证信息     |
+| Retry-After        | 对再次发起请求的时机要求   |
+| Server             | HTTP 服务器的安装信息  |
+| **Vary**           | 代理服务器缓存的管理信息   |
+| WWW-Authenticate   | 服务器对客户端的认证信息   |
 
 ###### 实体首部字段
 
-| 首部字段名        | 说明                                     |
-| ----------------- | ---------------------------------------- |
+| 首部字段名             | 说明                       |
+| ----------------- | ------------------------ |
 | **Allow**         | 资源可支持的 HTTP 方法*（同源跨域相关）* |
-| Content-Encoding  | 实体主体适用的编码方式                   |
-| Content-Language  | 实体主体的自然语言                       |
-| Content-Length    | 实体主体的大小                           |
-| Content-Location  | 替代对应资源的 URI                       |
-| Content-MD5       | 实体主体的报文摘要                       |
-| Content-Range     | 实体主体的位置范围                       |
-| **Content-Type**  | 实体主体的媒体类型                       |
-| **Expires**       | 实体主体过期的日期时间                   |
-| **Last-Modified** | 资源的最后修改日期时间                   |
+| Content-Encoding  | 实体主体适用的编码方式              |
+| Content-Language  | 实体主体的自然语言                |
+| Content-Length    | 实体主体的大小                  |
+| Content-Location  | 替代对应资源的 URI              |
+| Content-MD5       | 实体主体的报文摘要                |
+| Content-Range     | 实体主体的位置范围                |
+| **Content-Type**  | 实体主体的媒体类型                |
+| **Expires**       | 实体主体过期的日期时间              |
+| **Last-Modified** | 资源的最后修改日期时间              |
 
 ##### HTTP 连接管理
 
@@ -654,11 +656,7 @@
 
 + **domain 属性**指定了*可以接受 该cookie 的主机* ！
 
-  如果不指定，**默认为 当前文档的主机**（不包含 子域名）
-
-  如果指定，则一般包含子域名
-
-  *例如：domain= .mozilla.org 则，Cookie 也包含在其子域名中：developer.mozilla.org*
+  如果不指定，**默认为 当前域名**
 
   > 将 cookie 的域设置为高级域名，那么低级域名的所有请求可以使用：**单点登录**
   >
@@ -668,7 +666,15 @@
   >
   >   即：career.example.com	developer.example.com admin.example.com 等子域名都能使用！
 
-+ **Path 属性**指定了 *主机下的哪些 路径 可以接受 Cookie*（该 URL 路径必须存在于 请求 URL 中）
++ 注意：
+
+  cookie 的 domain **只能设置为当前 域名，或者其父级域名，不能设置为其子域名也不能设置为 其他域名**。如果设置为 其子域名、其他域名 则设置的缓存将无法获取（cookie 谁都无法获取，失效）
+
+  **这是浏览器的 cookie 功能，无法设置 cookie 跨域。**
+
+  ​
+
++ **Path 属性**指定了 *主机下的哪些 路径 可以接受 Cookie*（**该 URL 路径必须存在于 请求 URL 中**）
 
   路径以 反斜杠 作为分隔符，并且 Path 的子路径也会被匹配。
 
@@ -680,7 +686,7 @@
 
   ```
   浏览器通过 js 脚本：document.cookie 可以创建新 Cookie！
-  
+
   跨站脚本攻击（XSS）就常常使用 js 的 document.cookie API 窃取用户的 Cookie 信息！
   ```
 
@@ -893,7 +899,7 @@
   *no-cache、no-store、private、public、max-age、s-maxage*
 
   *Expires 首部字段*也可以用于设置 缓存的过期时间！
-  
+
 + **Cache-Control 默认属性为 private：表示允许浏览器端可缓存！**
 
 ###### 禁止缓存
@@ -971,9 +977,9 @@
   > If-Modified-Since : Wed, 21 Oct 2015 07:28:00 GMT
 
   ```html
-<!--
+  <!--
    · 可以将缓存资源的 Last-Modified 值放入 If-Modified-Since首部，服务器收到请求后，判断在 If-Modified-Since 指定的时间之后，资源是否被修改，如果 If-Modified-Since 结果为 false，则表明资源有效，并返回 304 Not Modified ！
--->
+  -->
   ```
 
 #### HTTPS
@@ -1095,10 +1101,10 @@
   ```html
   <!--
    · 实施中间人攻击时，攻击者常考虑的方式是 ARP欺骗 或 DNS欺骗 等。
-  
+
    · DNS欺骗（DNSSpoofing）：
   	攻击者通过入侵DNS服务器、控制路由器等方法把受害者要访问的目标机器域名对应的IP解析为攻击者所控制的机器，这样受害者原本要发送给目标机器的数据就发到了攻击者的机器上，这时攻击者就可以监听甚至修改数据，从而收集到大量的信息。
-  
+
   	如果攻击者只是想监听双方会话的数据，他会转发所有的数据到真正的目标机器上，让目标机器进行处理，再把处理结果发回到原来的受害者机器；如果攻击者要进行彻底的破坏，他会伪装目标机器返回数据，这样受害者接收处理的就不再是原来期望的数据，而是攻击者所期望的了。
   -->
   ```
