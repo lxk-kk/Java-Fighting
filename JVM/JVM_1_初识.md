@@ -1467,6 +1467,45 @@ JVM_END
   StackOverFlowError：这种会有明确的堆栈错误可以分析，相对而言比较容易定位问题所在！
 
   **OutOfMemoryError**：*在不能减少线程数量 或者 更换到64位 虚拟机的情况下，就只能通过减少 最大堆容量 或者 减少栈容量 来换取更多的线程数量！*
+  
++ 示例
+
+  ```java
+  public class Main {
+      public static void main(String[] args) {
+          recursionDead();
+          // createThreadUnLimited();
+      }
+  
+      private static void recursionDead() {
+          // 死递归：每个方法执行都会创建栈帧 —— StackOverFlow
+          // Exception in thread "main" java.lang.StackOverflowError
+          // 线程死递归时，每深入一层都会申请空间，当线程申请的空间 超过 java虚拟机栈为线程分配的空间时，抛出 StackOverFlowError
+          // 如果不设置 -Xss（ThreadStackSize） 属性，则在 64bit 的机器上，线程将默认分配到 1024KB 的空间。
+          recursionDead();
+      }
+  
+      private static void createThreadUnLimited() {
+          // 无限制创建线程：OOM
+          // Failed to start thread - _beginthreadex failed (EACCES) for attributes: stacksize: default, flags:
+          // CREATE_SUSPENDED STACK_SIZE_PARAM_IS.
+          // Exception in thread "main" java.lang.OutOfMemoryError: unable to create native thread: possibly out of
+          // memory or process/resource limits reached
+          // 创建线程时，会为线程分配线程私有的空间（程序计数器、Java 虚拟机栈、本地方法栈），当程序中动态申请的空间超过 栈可分配的内存时，抛出 OOM
+          // 栈可分配内存：与 -Xss 属性无关，栈分配内存指 jvm总内存 - 堆内存 - 方法区内存 - 程序计数器 的结果。
+          while (true) {
+              Thread thread = new Thread();
+              thread.start();
+          }
+      }
+  }
+  ```
+
++ 补充
+
+  [JVM 可支持线程数](https://blog.csdn.net/javazhiyin/article/details/93437643) | [JVM -Xss 线程栈内存默认大小](https://www.zhihu.com/question/27844575)
+
+  [JVM 堆默认大小（含官方文档）](https://blog.csdn.net/russle/article/details/98449971)
 
 ##### 方法区溢出
 
