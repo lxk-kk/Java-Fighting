@@ -126,6 +126,7 @@
 #### 调优
 
 + [JAVA 线上故障排查：详解 ](https://mp.weixin.qq.com/s/EM5tbVkG4KJZ2D95qjJNuA)
++ [visualvm 使用教程](https://visualvm.github.io/documentation.html)
 
 ##### CPU 占用
 
@@ -323,3 +324,11 @@
  
  · 对于G1收集器来说，可以适当调大Java堆，因为G1收集器采用了局部区域收集策略，单次垃圾收集的时间可控，可以管理较大的Java堆。
 ```
+
+##### 大佬调优案例
+
++ [JVM 性能调优](https://www.jianshu.com/p/009df307fbcf)
++ [Visualvm 性能案例分析](https://blog.csdn.net/localhost01/article/details/83422902?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~all~baidu_landing_v2~default-8-83422902.nonecase&utm_term=visualvm&spm=1000.2123.3001.4430)
++ [jdk 9 部署 visualvm](https://blog.csdn.net/ren9436/article/details/108907596)
++ [visualvm 官网使用手册](https://visualvm.github.io/gettingstarted.html)
+
